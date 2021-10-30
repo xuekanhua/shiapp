@@ -20,7 +20,7 @@ def play(request):
             <meta charset="utf-8">
             <title>术士之战</title>
     </head>
-    <h2 style="text-align: center" >游戏界面</h2>
+    <h2 style="text-align: center" >游戏界面(测试)</h2>
     <hr>
     <a href="/"><h3 style="text-align: center" >返回主界面</h3><a>
     <img style="width: 98vw" src="https://s3.bmp.ovh/imgs/2021/09/21ee78aeae84b207.jpg">'''
