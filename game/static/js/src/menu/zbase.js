@@ -10,14 +10,4 @@ class ShiGameMenu
 `);
         this.root.$shi_game.append(this.$menu);
     }
-}class ShiGame 
-{
-    constructor(id)
-    {
-        this.id = id;
-        this.$shi_game = $('#' + id);
-        this.menu = new ShiGameMenu(this);
-        
-
-    }
 }
