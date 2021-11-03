@@ -1,7 +1,4 @@
-class Shigame 
-{
-    constructor(id)
-    {
-
+class ShiGame {
+    constructor(id){
     }
 }
