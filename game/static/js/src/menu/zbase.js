@@ -1,7 +1,6 @@
-class ShiGameMenu
-{
-    constructor (root)
-    {
+
+class ShiGameMenu {
+    constructor(root) {
         //一般.html对象加$普通的不加
         this.root = root;
         this.$menu = $(`
@@ -30,36 +29,29 @@ class ShiGameMenu
         this.start();
 
     }
-    start()
-    {
+    start() {
         this.add_listening_events();
     }
-    add_listening_events()
-    {
+    add_listening_events() {
         let outer = this;
-        this.$single_mode.click(function()
-        {
+        this.$single_mode.click(function () {
             console.log("click single mode");
             outer.hide();
             outer.root.playground.show();
         });
-        this.$multi_mode.click(function()
-        {
+        this.$multi_mode.click(function () {
             console.log("click multi mode");
         });
-        this.$settings.click(function()
-        {
+        this.$settings.click(function () {
             console.log("click settings");
         });
     }
 
 
-    show()
-    {
+    show() {
         this.$menu.show();
     }
-    hide()
-    {
+    hide() {
         this.$menu.hide();
     }
 }

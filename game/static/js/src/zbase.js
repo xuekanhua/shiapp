@@ -1,15 +1,14 @@
-class ShiGame 
-{
-    constructor(id)
-    {
+
+export class ShiGame {
+    constructor(id) {
         this.id = id;
         this.$shi_game = $('#' + id);
-        this.menu = new ShiGameMenu(this);
+        // this.menu = new ShiGameMenu(this);
         this.playground = new ShiGamePlayground(this);
+        
         this.start();
     }
-    start()
-    {
+    start() {
         console.log("start")
     }
 }
