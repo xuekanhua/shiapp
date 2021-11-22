@@ -213,7 +213,8 @@ class Settings {
             success : function(resp)
             {
                 console.log(resp);
-                if(resp.success === "succsee")
+                console.log(resp.result);
+                if(resp.result === "success")
                 {
                     location.reload();
                 }
