@@ -23,8 +23,6 @@ class Player extends ShiGameObject {
         if(this.is_me){
             this.img = new Image();
             this.img.src = this.playground.root.settings.photo;
-
-
         }
         
 
@@ -54,7 +52,7 @@ class Player extends ShiGameObject {
             }
             else if (e.which === 1) {
                 if (outer.cur_skill === "fireball") {
-                    console.log(outer.cur_skill);
+                    console.log(outer.cur_skill);   
                     outer.shoot_fireball(e.clientX - rect.left, e.clientY - rect.top);
                 }
                 outer.cur_skill = null;
@@ -64,6 +62,7 @@ class Player extends ShiGameObject {
         $(window).keydown(function (e) {
             if (e.which === 81) { // q
                 outer.cur_skill = "fireball";
+                
                 return false;
 
             }

@@ -5,5 +5,6 @@ urlpatterns = [
     path("menu/", include("game.urls.menu.index")), 
     path("platground/", include("game.urls.playground.index")),
     path("settings/", include("game.urls.settings.index")),
+    
 
 ]

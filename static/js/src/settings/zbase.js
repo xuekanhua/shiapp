@@ -116,6 +116,12 @@ class Settings {
 
         this.$register.hide();
 
+
+
+
+        this.$acwing_login= this.$settings.find(".shi_game_settings_acwing img");
+
+
         this.root.$shi_game.append(this.$settings);
 
         this.start();
@@ -123,9 +129,13 @@ class Settings {
 
     add_listening_events()
     {
+        let outer = this;
         this.add_listening_events_login();
         this.add_listening_events_register();
-
+        this.$acwing_login.click(function()
+        {
+            outer.acwing_login();
+        });
     }
     add_listening_events_login()
     {
@@ -154,7 +164,23 @@ class Settings {
         });
     }
 
-
+    acwing_login()
+    {
+        console.log("acwing_click login");
+        $.ajax({
+            url : "https://app171.acapp.acwing.com.cn/settings/acwing/web/apply_code/",
+            type: "GET",
+            success:function(resp)
+            {
+                if(resp.result === "success")
+                {
+                    console.log(resp.apply_code_url);
+                    window.location.replace(resp.apply_code_url);
+                    
+                }
+            }
+        });
+    }
 
     start() 
     {

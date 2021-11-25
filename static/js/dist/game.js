@@ -204,8 +204,6 @@ class Player extends ShiGameObject {
         if(this.is_me){
             this.img = new Image();
             this.img.src = this.playground.root.settings.photo;
-
-
         }
         
 
@@ -235,7 +233,7 @@ class Player extends ShiGameObject {
             }
             else if (e.which === 1) {
                 if (outer.cur_skill === "fireball") {
-                    console.log(outer.cur_skill);
+                    console.log(outer.cur_skill);   
                     outer.shoot_fireball(e.clientX - rect.left, e.clientY - rect.top);
                 }
                 outer.cur_skill = null;
@@ -245,6 +243,7 @@ class Player extends ShiGameObject {
         $(window).keydown(function (e) {
             if (e.which === 81) { // q
                 outer.cur_skill = "fireball";
+                
                 return false;
 
             }
@@ -630,6 +629,12 @@ class ShiGamePlayground {
 
         this.$register.hide();
 
+
+
+
+        this.$acwing_login= this.$settings.find(".shi_game_settings_acwing img");
+
+
         this.root.$shi_game.append(this.$settings);
 
         this.start();
@@ -637,9 +642,13 @@ class ShiGamePlayground {
 
     add_listening_events()
     {
+        let outer = this;
         this.add_listening_events_login();
         this.add_listening_events_register();
-
+        this.$acwing_login.click(function()
+        {
+            outer.acwing_login();
+        });
     }
     add_listening_events_login()
     {
@@ -668,7 +677,23 @@ class ShiGamePlayground {
         });
     }
 
-
+    acwing_login()
+    {
+        console.log("acwing_click login");
+        $.ajax({
+            url : "https://app171.acapp.acwing.com.cn/settings/acwing/web/apply_code/",
+            type: "GET",
+            success:function(resp)
+            {
+                if(resp.result === "success")
+                {
+                    console.log(resp.apply_code_url);
+                    window.location.replace(resp.apply_code_url);
+                    
+                }
+            }
+        });
+    }
 
     start() 
     {
