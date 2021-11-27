@@ -514,10 +514,13 @@ class ShiGamePlayground {
 }class Settings {
     constructor(root) {
         this.root = root;
-        this.platfrom = "WEB";
-        if(this.root.AcWingOS) this.platfrom = "SHIAPP";
+        this.platform = "WEB";
+        if(this.root.AcWingOS) this.platform = "ACAPP";
+
+        console.log(this.platform);
         this.username = "";
         this.photo = "";
+
 
 
         this.$settings = $(`
@@ -619,6 +622,7 @@ class ShiGamePlayground {
         this.$login_register = this.$login.find(".shi_game_settings_option");
 
         this.$login.hide();
+
         this.$register = this.$settings.find(".shi_game_settings_register");
         this.$register_username = this.$register.find(".shi_game_settings_username input");
         this.$register_password = this.$register.find(".shi_game_settings_password_first input");
@@ -628,9 +632,6 @@ class ShiGamePlayground {
         this.$register_login = this.$register.find(".shi_game_settings_option");
 
         this.$register.hide();
-
-
-
 
         this.$acwing_login= this.$settings.find(".shi_game_settings_acwing img");
 
@@ -697,8 +698,16 @@ class ShiGamePlayground {
 
     start() 
     {
-        this.getinfo();
-        this.add_listening_events();
+        if(this.platform === "ACAPP")
+        {
+            console.log("login_acapp");
+            this.getinfo_acapp();
+        }
+        else{
+            console.log("login_web");
+            this.getinfo_web();
+            this.add_listening_events();
+        }
     }
 
     login_on_remote() //登录远程服务器
@@ -768,7 +777,7 @@ class ShiGamePlayground {
 
     logout_on_remote()//登出远程服务器
     {   
-        if(this.platfrom === "SHIAPP")return false;
+        if(this.platform === "SHIAPP")return false;
         $.ajax({
 
             url : "https://app171.acapp.acwing.com.cn/settings/logout/",
@@ -800,15 +809,50 @@ class ShiGamePlayground {
         this.$login.show();
 
     }
+    acapp_login(appid, redirect_uri, scope, state)
+    {
+        let outer = this;
+        this.root.AcWingOS.api.oauth2.authorize(appid, redirect_uri, scope, state, function(resp){
+            console.log("called from acapp_login function");
+            console.log(resp.result);
+            console.log(resp);
+            if(resp.result === "success")
+            {
+                outer.username = resp.username;
+                outer.photo = resp.photo;
+                outer.hide();
+                outer.root.menu.show() ;
+            }
+        });
 
-    getinfo() 
+    }
+
+
+    getinfo_acapp()
+    {
+        let outer = this;
+        $.ajax({
+            url : "https://app171.acapp.acwing.com.cn/settings/acwing/acapp/apply_code/",
+            type : "GET",
+            success : function(resp)
+            {
+                if(resp.result === "success")
+                {
+                    outer.acapp_login(resp.appid, resp.redirect_uri, resp.scope, resp.state);
+                }
+            }
+
+        });
+    }
+
+    getinfo_web() 
     {
         let outer = this;
         $.ajax({
             url : "https://app171.acapp.acwing.com.cn/settings/getinfo/",
             type : "GET",
             data:{
-                platfrom : outer.platfrom,
+                platform : outer.platform,
             },
             success :function(resp){
                 console.log(resp);
@@ -838,6 +882,8 @@ class ShiGamePlayground {
 }
 export class ShiGame {
     constructor(id, AcWingOS) {
+        console.log(AcWingOS);
+        
         this.id = id;
         this.$shi_game = $('#' + id);
         this.AcWingOS = AcWingOS;

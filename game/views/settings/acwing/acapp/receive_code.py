@@ -1,26 +1,40 @@
-from django.shortcuts import redirect
+from django.http.response import JsonResponse
 from django.core.cache import cache
 import requests
 from django.contrib.auth.models import User
 from game.models.player.player import Player
-from django.contrib.auth import login
 from random import randint
+
+
+
 def receive_code(request):
 
 
     print("***********************************************")
-    print("web端登录")
+    print("acapp端登录")
     print("***********************************************")
 
     data = request.GET
+
+    if "errcode" in data:
+        return JsonResponse({
+            'result' : "apply_failed",
+            'errcode': data['errcode'],
+            'errmsg' : data['errmsg'],
+        })
+
+    
     code = data.get('code')
     state = data.get('state')
 
 
     print(code, state)
+
     if not cache.has_key(state):
-        return redirect("index")
-    cache.delete(state)
+        return JsonResponse({
+            'result':"state not exist"
+        })
+    # cache.delete(state)
 
 
     apply_access_token_url = "https://www.acwing.com/third_party/api/oauth2/access_token/"
@@ -40,8 +54,13 @@ def receive_code(request):
 
     players = Player.objects.filter(openid=openid)
     if players.exists(): # 用户查找是否登录
-        login(request, players[0].user)
-        return redirect("index")
+        # login(request, players[0].user)
+        player = players[0]
+        return JsonResponse({
+            'result' : "success",
+            'username' : player.user.username,
+            'photo' : player.photo,
+        })
 
 
     get_userinfo_url = "https://www.acwing.com/third_party/api/meta/identity/getinfo/"
@@ -58,6 +77,10 @@ def receive_code(request):
 
     user = User.objects.create(username=username)
     player = Player.objects.create(user=user, photo=photo, openid=openid)
-    login(request, user)
+    # login(request, user)
 
-    return redirect("index")
+    return JsonResponse({
+        'result' : "success",
+        'username' : player.user.username,
+        'photo' : player.photo,
+    })

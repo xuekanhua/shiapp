@@ -2,7 +2,7 @@ from django.http import JsonResponse
 from game.models.player.player import Player
 
 
-def getinfo_shiapp(request):
+def getinfo_acapp(request):
     player = Player.objects.all()[0]
     return JsonResponse({
         'result':"success",
@@ -28,8 +28,11 @@ def getinfo_web(request):
 
 
 def getinfo(request):
-    platfrom = request.GET.get('platfrom')
-    if platfrom == "SHIAPP":
-        return getinfo_shiapp(request)
-    elif platfrom == "WEB" :
+    platform = request.GET.get('platform')
+    if platform == "ACAPP":
+        print("***********************************************")
+        print("acapp端登录")
+        print("***********************************************")
+        return getinfo_acapp(request)
+    elif platform == "WEB" :
         return getinfo_web(request)
