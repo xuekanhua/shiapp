@@ -136,7 +136,7 @@ class GameMap extends ShiGameObject {
     }
 
     render() {
-        this.ctx.fillStyle = "rgba(0, 0, 0, 0.1)";
+        this.ctx.fillStyle = "rgba(53, 55, 75, 0.3)";
         this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
     }
 
@@ -223,36 +223,74 @@ class Player extends ShiGameObject {
 
     add_listening_events() {
         let outer = this;
+        let x, y;
+        this.playground.game_map.$canvas.mousemove(function (e)
+        {
+            x = e.clientX, y = e.clientY;
+        });
+        this.playground.game_map.$canvas.mousedown(function (e)
+        {
+            x = e.clientX, y = e.clientY;
+        });
         this.playground.game_map.$canvas.on("contextmenu", function () {
             return false;
         });
         this.playground.game_map.$canvas.mousedown(function (e) {
             const rect = outer.ctx.canvas.getBoundingClientRect();
             if (e.which === 3) {// 右键3， 左键1， 滚轮2
-                outer.move_to(e.clientX - rect.left, e.clientY - rect.top);
+                outer.move_to(x - rect.left, y - rect.top);
             }
             else if (e.which === 1) {
                 if (outer.cur_skill === "fireball") {
                     console.log(outer.cur_skill);   
-                    outer.shoot_fireball(e.clientX - rect.left, e.clientY - rect.top);
+                    outer.shoot_fireball(x - rect.left, y - rect.top);
                 }
                 outer.cur_skill = null;
             }
 
         });
+        // this.playground.game_map.$canvas.mousedown(function (e) {
+        //     const rect = outer.ctx.canvas.getBoundingClientRect();
+        //     if (e.which === 3) {// 右键3， 左键1， 滚轮2
+        //         outer.move_to(e.clientX - rect.left, e.clientY - rect.top);
+        //     }
+        //     else if (e.which === 1) {
+        //         if (outer.cur_skill === "fireball") {
+        //             console.log(outer.cur_skill);   
+        //             outer.shoot_fireball(e.clientX - rect.left, e.clientY - rect.top);
+        //         }
+        //         outer.cur_skill = null;
+        //     }
+
+        // });
+
+        this.playground.game_map.$canvas.mousemove(function (e)
+        {
+            const rect = outer.ctx.canvas.getBoundingClientRect();
+
+            if (outer.cur_skill === "fireball") {
+                console.log(outer.cur_skill);   
+                outer.shoot_fireball(x - rect.left, y - rect.top);
+            }
+            outer.cur_skill = null;
+        });
         $(window).keydown(function (e) {
             if (e.which === 81) { // q
                 outer.cur_skill = "fireball";
-                
+                const rect = outer.ctx.canvas.getBoundingClientRect();
+                if (outer.cur_skill === "fireball") {
+                    console.log(outer.cur_skill);   
+                    outer.shoot_fireball(x - rect.left, y - rect.top);
+                }
+                outer.cur_skill = null;
                 return false;
-
             }
 
         });
     }
 
     shoot_fireball(tx, ty) {
-        console.log("shoot to ", tx, ty);
+        
         let x = this.x, y = this.y;
         let radius = this.playground.height * 0.01;
         let angle = Math.atan2(ty - this.y, tx - this.x);
@@ -261,7 +299,16 @@ class Player extends ShiGameObject {
         let speed = this.playground.height * 0.5;
         let move_length = this.playground.height * 1;
         let damage = this.playground.height * 0.01;
-        new FireBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, damage);
+        for(let i = 0; i < this.playground.players.length; i ++)
+        {
+            if(this.playground.players[i] === this)
+            {
+                new FireBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, damage);
+                console.log("shoot to ", tx, ty);
+            }
+        }
+        
+        
 
     }
 
@@ -399,6 +446,9 @@ class FireBall extends ShiGameObject {
         this.speed = speed;
         this.damage = damage;
         this.eps = 0.1;
+        // console.log(this.player);
+        // console.log(this.player.is_me);
+
 
     }
     start() {
@@ -484,17 +534,12 @@ class ShiGamePlayground {
         let colors = ["blue", "red", "pink", "grey", "green"];
         return colors[Math.floor(Math.random() * 5)];
     }
-    get_random_color() {
-        let colors = ["blue", "red", "pink", "grey", "green"];
-        return colors[Math.floor(Math.random() * 5)];
-    }
 
     start() {
         console.log("start playground");
     }
     show() {
         this.$playground.show();
-
         this.root.$shi_game.append(this.$playground);
         this.width = this.$playground.width();
         this.height = this.$playground.height();
@@ -590,6 +635,12 @@ class ShiGamePlayground {
             </div>
         </div>
 
+        <div class="shi_game_settings_photo">
+            <div class="shi_game_settings_item">
+                <input type="text" placeholder="头像链接" >
+            </div>
+        </div>
+
         <div class="shi_game_settings_submit">
             <div class="shi_game_settings_item">
                 <button>注册</button>
@@ -627,6 +678,7 @@ class ShiGamePlayground {
         this.$register_username = this.$register.find(".shi_game_settings_username input");
         this.$register_password = this.$register.find(".shi_game_settings_password_first input");
         this.$register_password_confirm = this.$register.find(".shi_game_settings_password_second input");
+        this.$register_photo = this.$register.find(".shi_game_settings_photo input");
         this.$register_submit = this.$register.find(".shi_game_settings_submit button");
         this.$register_error_messages = this.$register.find(".shi_game_settings_error_messages");
         this.$register_login = this.$register.find(".shi_game_settings_option");
@@ -748,6 +800,7 @@ class ShiGamePlayground {
         let username = this.$register_username.val();
         let password = this.$register_password.val();
         let password_confirm = this.$register_password_confirm.val();
+        let photo = this.$register_photo.val();
         this.$register_error_messages.empty();
         $.ajax({
             url : "https://app171.acapp.acwing.com.cn/settings/register",
@@ -756,6 +809,7 @@ class ShiGamePlayground {
                 username :username,
                 password : password,
                 password_confirm: password_confirm,
+                photo: photo,
 
             },
             success : function(resp)

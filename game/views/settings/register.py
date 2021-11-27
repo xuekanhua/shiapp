@@ -12,6 +12,7 @@ def register(request):
     username = data.get("username", "").strip()
     password = data.get("password", "").strip()
     password_confirm = data.get("password_confirm", "").strip()
+    photo = data.get("photo", "").strip()
     if not username or not password or not password_confirm:
         return JsonResponse({
             'result' : "用户名或密码不能为空"
@@ -27,7 +28,9 @@ def register(request):
     user = User(username=username)
     user.set_password(password)
     user.save()
-    Player.objects.create(user=user, photo="https://cdn.acwing.com/media/user/profile/photo/69128_lg_c8103deb2b.jpg")
+    # Player.objects.create(user=user, photo="https://cdn.acwing.com/media/user/profile/photo/69128_lg_c8103deb2b.jpg")
+    Player.objects.create(user=user, photo=photo)
+    
     login(request, user)
     return JsonResponse({
         'result' : "success"

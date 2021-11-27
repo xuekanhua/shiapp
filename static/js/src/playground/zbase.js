@@ -25,17 +25,12 @@ class ShiGamePlayground {
         let colors = ["blue", "red", "pink", "grey", "green"];
         return colors[Math.floor(Math.random() * 5)];
     }
-    get_random_color() {
-        let colors = ["blue", "red", "pink", "grey", "green"];
-        return colors[Math.floor(Math.random() * 5)];
-    }
 
     start() {
         console.log("start playground");
     }
     show() {
         this.$playground.show();
-
         this.root.$shi_game.append(this.$playground);
         this.width = this.$playground.width();
         this.height = this.$playground.height();

@@ -18,7 +18,7 @@ class GameMap extends ShiGameObject {
     }
 
     render() {
-        this.ctx.fillStyle = "rgba(0, 0, 0, 0.1)";
+        this.ctx.fillStyle = "rgba(53, 55, 75, 0.3)";
         this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
     }
 

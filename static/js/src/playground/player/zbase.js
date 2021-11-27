@@ -42,36 +42,74 @@ class Player extends ShiGameObject {
 
     add_listening_events() {
         let outer = this;
+        let x, y;
+        this.playground.game_map.$canvas.mousemove(function (e)
+        {
+            x = e.clientX, y = e.clientY;
+        });
+        this.playground.game_map.$canvas.mousedown(function (e)
+        {
+            x = e.clientX, y = e.clientY;
+        });
         this.playground.game_map.$canvas.on("contextmenu", function () {
             return false;
         });
         this.playground.game_map.$canvas.mousedown(function (e) {
             const rect = outer.ctx.canvas.getBoundingClientRect();
             if (e.which === 3) {// 右键3， 左键1， 滚轮2
-                outer.move_to(e.clientX - rect.left, e.clientY - rect.top);
+                outer.move_to(x - rect.left, y - rect.top);
             }
             else if (e.which === 1) {
                 if (outer.cur_skill === "fireball") {
                     console.log(outer.cur_skill);   
-                    outer.shoot_fireball(e.clientX - rect.left, e.clientY - rect.top);
+                    outer.shoot_fireball(x - rect.left, y - rect.top);
                 }
                 outer.cur_skill = null;
             }
 
         });
+        // this.playground.game_map.$canvas.mousedown(function (e) {
+        //     const rect = outer.ctx.canvas.getBoundingClientRect();
+        //     if (e.which === 3) {// 右键3， 左键1， 滚轮2
+        //         outer.move_to(e.clientX - rect.left, e.clientY - rect.top);
+        //     }
+        //     else if (e.which === 1) {
+        //         if (outer.cur_skill === "fireball") {
+        //             console.log(outer.cur_skill);   
+        //             outer.shoot_fireball(e.clientX - rect.left, e.clientY - rect.top);
+        //         }
+        //         outer.cur_skill = null;
+        //     }
+
+        // });
+
+        this.playground.game_map.$canvas.mousemove(function (e)
+        {
+            const rect = outer.ctx.canvas.getBoundingClientRect();
+
+            if (outer.cur_skill === "fireball") {
+                console.log(outer.cur_skill);   
+                outer.shoot_fireball(x - rect.left, y - rect.top);
+            }
+            outer.cur_skill = null;
+        });
         $(window).keydown(function (e) {
             if (e.which === 81) { // q
                 outer.cur_skill = "fireball";
-                
+                const rect = outer.ctx.canvas.getBoundingClientRect();
+                if (outer.cur_skill === "fireball") {
+                    console.log(outer.cur_skill);   
+                    outer.shoot_fireball(x - rect.left, y - rect.top);
+                }
+                outer.cur_skill = null;
                 return false;
-
             }
 
         });
     }
 
     shoot_fireball(tx, ty) {
-        console.log("shoot to ", tx, ty);
+        
         let x = this.x, y = this.y;
         let radius = this.playground.height * 0.01;
         let angle = Math.atan2(ty - this.y, tx - this.x);
@@ -80,7 +118,16 @@ class Player extends ShiGameObject {
         let speed = this.playground.height * 0.5;
         let move_length = this.playground.height * 1;
         let damage = this.playground.height * 0.01;
-        new FireBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, damage);
+        for(let i = 0; i < this.playground.players.length; i ++)
+        {
+            if(this.playground.players[i] === this)
+            {
+                new FireBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, damage);
+                console.log("shoot to ", tx, ty);
+            }
+        }
+        
+        
 
     }
 

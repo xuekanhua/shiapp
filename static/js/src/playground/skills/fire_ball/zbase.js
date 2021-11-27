@@ -15,6 +15,9 @@ class FireBall extends ShiGameObject {
         this.speed = speed;
         this.damage = damage;
         this.eps = 0.1;
+        // console.log(this.player);
+        // console.log(this.player.is_me);
+
 
     }
     start() {

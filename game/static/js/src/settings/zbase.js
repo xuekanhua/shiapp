@@ -77,6 +77,12 @@ class Settings {
             </div>
         </div>
 
+        <div class="shi_game_settings_photo">
+            <div class="shi_game_settings_item">
+                <input type="text" placeholder="头像链接" >
+            </div>
+        </div>
+
         <div class="shi_game_settings_submit">
             <div class="shi_game_settings_item">
                 <button>注册</button>
@@ -114,6 +120,7 @@ class Settings {
         this.$register_username = this.$register.find(".shi_game_settings_username input");
         this.$register_password = this.$register.find(".shi_game_settings_password_first input");
         this.$register_password_confirm = this.$register.find(".shi_game_settings_password_second input");
+        this.$register_photo = this.$register.find(".shi_game_settings_photo input");
         this.$register_submit = this.$register.find(".shi_game_settings_submit button");
         this.$register_error_messages = this.$register.find(".shi_game_settings_error_messages");
         this.$register_login = this.$register.find(".shi_game_settings_option");
@@ -235,6 +242,7 @@ class Settings {
         let username = this.$register_username.val();
         let password = this.$register_password.val();
         let password_confirm = this.$register_password_confirm.val();
+        let photo = this.$register_photo.val();
         this.$register_error_messages.empty();
         $.ajax({
             url : "https://app171.acapp.acwing.com.cn/settings/register",
@@ -243,6 +251,7 @@ class Settings {
                 username :username,
                 password : password,
                 password_confirm: password_confirm,
+                photo: photo,
 
             },
             success : function(resp)
