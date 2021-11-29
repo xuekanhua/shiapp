@@ -11,14 +11,18 @@ class GameMap extends ShiGameObject {
 
     }
     start() {
+        
     }
 
     update() {
+
         this.render();
     }
 
     render() {
-        this.ctx.fillStyle = "rgba(53, 55, 75, 0.3)";
+        // this.ctx.fillStyle = "rgba(53, 55, 75, 0.3)";
+        this.ctx.fillStyle = "rgba(176,224,230, 0.6)";
+
         this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
     }
 

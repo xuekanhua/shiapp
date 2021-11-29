@@ -48,7 +48,7 @@ class Settings {
         <div class="shi_game_settings_acwing">
             <img width="30" src="https://app171.acapp.acwing.com.cn/static/image/settings/acwing_logo.png">
             <br>
-            <div>AcWing 一键登录</div>
+            <div>一键登录</div>
         </div>
 
     </div>
@@ -100,7 +100,7 @@ class Settings {
         <div class="shi_game_settings_acwing">
             <img width="30" src="https://app171.acapp.acwing.com.cn/static/image/settings/acwing_logo.png">
             <br>
-            <div>AcWing 一键登录</div>
+            <div>一键登录</div>
         </div>
 
     </div>

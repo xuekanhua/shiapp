@@ -53,26 +53,51 @@
 }
 .shi_game_settings_login
 {
-    width: 20vw;
+    /* width: 20vw;
     height: 41vh;
     position: relative;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     background-color: rgba(0, 0, 0, 0.6);
+    border-radius: 10px; */
+
+
+    height: 41vh;
+    width: 20vw;
+    position: relative;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #00000060;
+    border-radius: 5px;
+    text-align: center;
     border-radius: 10px;
+    padding: 50px 50px;
 }
 
 .shi_game_settings_register
 {
-    width: 20vw;
+    /* width: 20vw;
     height: 52vh;
     position: relative;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     border-radius: 10px;
-    background-color: rgba(0, 0, 0, 0.6);
+    background-color: rgba(0, 0, 0, 0.6); */
+    height: 52vh;
+    width: 20vw;
+    position: relative;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #00000060;
+    border-radius: 5px;
+
+    text-align: center;
+    border-radius: 10px;
+    padding: 50px 50px;
 }
 .shi_game_settings_title
 {
@@ -81,6 +106,8 @@
     text-align: center;
     height: 5vh;
     padding-top: 2vh;
+    
+
 }
 
 .shi_game_settings_username
@@ -109,12 +136,28 @@
 
 .shi_game_settings_item > input
 {
-    width: 90%;
+    /* width: 90%;
     line-height: 3vh;
     position: relative;
     top: 50%;
     left: 50%;
+    transform: translate(-50%, -50%); */
+
+    outline: none;
+    width: 60%;
+    line-height: 3vh;
+    position: relative;
+    top: 50%;
+    left: 30%;
     transform: translate(-50%, -50%);
+
+    border: 0;
+            font-size: 15px;
+            color: #ffffff;
+            background: #ffffff00;
+            border-bottom: 2px solid #ffffff;
+            padding: 5px 10px;
+            /* margin-top: 10px; */
 }
 
 .shi_game_settings_submit
@@ -125,7 +168,7 @@
 
 .shi_game_settings_item > button
 {
-    color: white;
+    /* color: white;
     background-color: #25B1FF;
     width: 90%;
     line-height: 3vh;
@@ -133,7 +176,23 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+    border-radius: 10px; */
+
+
+    color: white;
+    width: 60%;
+    line-height: 3vh;
+    position: relative;
+    top: 50%;
+    left: 30%;
+    transform: translate(-50%, -50%);
+    background: #ffffff00;
+    
     border-radius: 10px;
+    border-width: 2px;
+    border-color: white;
+    font-size: 15px;
+    cursor: pointer;
 }
 
 .shi_game_settings_error_messages
@@ -169,15 +228,21 @@
     transform: translate(-50%, -50%);
     cursor: pointer;
     display: block;
-
+    
 }
 .shi_game_settings_acwing > div
 {
-    font-size: 1.5vh;
+    /* font-size: 1.5vh;
     color: white;
     text-align: center;
     cursor: pointer;
     display: block;
+     */
+
+    padding-top: 10px;
+    color: white;
+    font-size: 1.5vh;
+    text-align: center;
     
 }
 

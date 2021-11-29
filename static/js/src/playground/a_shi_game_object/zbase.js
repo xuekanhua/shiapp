@@ -1,4 +1,7 @@
 
+// 判定游戏结束
+let game_over = 0;let game_over_time = 0;let game_is_win = 1;
+
 let SHI_GAME_OBJECTS = []
 class ShiGameObject { //基类，文件夹前缀加个a
     constructor() {
@@ -32,20 +35,28 @@ class ShiGameObject { //基类，文件夹前缀加个a
     }
 }
 
-let last_timestamp;
+//游戏引擎
+let last_timestamp;//上一帧
 let SHI_GAME_ANIMATION = function (timestamp) {
     for (let i = 0; i < SHI_GAME_OBJECTS.length; i++) {
         let obj = SHI_GAME_OBJECTS[i];
         if (!obj.has_called_start) {
-            obj.start();
+            obj.start();//标记执行过start
             obj.has_called_start = true;
         }
         else {
-            obj.timedelta = timestamp - last_timestamp;
+            obj.timedelta = timestamp - last_timestamp; //初始化时间间隔
             obj.update();
         }
     }
     last_timestamp = timestamp;
+    //判定结束
+    if(game_over === 1)
+    {
+        game_over_time = timestamp;
+        game_over = -1;
+    }
+    
     requestAnimationFrame(SHI_GAME_ANIMATION);
 }
 

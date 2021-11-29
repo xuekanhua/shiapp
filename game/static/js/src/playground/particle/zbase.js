@@ -29,6 +29,9 @@ class Particle extends ShiGameObject {
         this.y += this.vy * moved;
         this.speed *= this.friction;
         this.move_length -= moved;
+
+        
+
         this.render();
     }
     render() {

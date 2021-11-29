@@ -60,8 +60,6 @@ class ShiGameMenu {
         this.$menu.hide();
     }
 }
-// 判定游戏结束
-let game_over = 0;let game_over_time = 0;let game_is_win = 1;
 
 let SHI_GAME_OBJECTS = []
 class ShiGameObject { //基类，文件夹前缀加个a
@@ -96,28 +94,20 @@ class ShiGameObject { //基类，文件夹前缀加个a
     }
 }
 
-//游戏引擎
-let last_timestamp;//上一帧
+let last_timestamp;
 let SHI_GAME_ANIMATION = function (timestamp) {
     for (let i = 0; i < SHI_GAME_OBJECTS.length; i++) {
         let obj = SHI_GAME_OBJECTS[i];
         if (!obj.has_called_start) {
-            obj.start();//标记执行过start
+            obj.start();
             obj.has_called_start = true;
         }
         else {
-            obj.timedelta = timestamp - last_timestamp; //初始化时间间隔
+            obj.timedelta = timestamp - last_timestamp;
             obj.update();
         }
     }
     last_timestamp = timestamp;
-    //判定结束
-    if(game_over === 1)
-    {
-        game_over_time = timestamp;
-        game_over = -1;
-    }
-    
     requestAnimationFrame(SHI_GAME_ANIMATION);
 }
 
@@ -140,18 +130,14 @@ class GameMap extends ShiGameObject {
 
     }
     start() {
-        
     }
 
     update() {
-
         this.render();
     }
 
     render() {
-        // this.ctx.fillStyle = "rgba(53, 55, 75, 0.3)";
-        this.ctx.fillStyle = "rgba(176,224,230, 0.6)";
-
+        this.ctx.fillStyle = "rgba(53, 55, 75, 0.3)";
         this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
     }
 
@@ -219,16 +205,11 @@ class Player extends ShiGameObject {
         this.friction = 0.9;
         this.spent_time = 0;
         this.cur_skill = null;
-        this.speed_old = this.speed;
         if(this.is_me){
             this.img = new Image();
             this.img.src = this.playground.root.settings.photo;
         }
-        else
-        {
-            this.img = new Image();
-            this.img.src = "https://app171.acapp.acwing.com.cn/static/image/playground/huaidan.png"
-        }
+        
 
     }
 
@@ -246,62 +227,66 @@ class Player extends ShiGameObject {
 
     add_listening_events() {
         let outer = this;
-        let x, y;//鼠标位置坐标
-        //获取移动位置
+        let x, y;
         this.playground.game_map.$canvas.mousemove(function (e)
         {
             x = e.clientX, y = e.clientY;
         });
-        //获取点击位置
         this.playground.game_map.$canvas.mousedown(function (e)
         {
             x = e.clientX, y = e.clientY;
         });
-        // 禁用右键菜单
         this.playground.game_map.$canvas.on("contextmenu", function () {
             return false;
         });
         this.playground.game_map.$canvas.mousedown(function (e) {
             const rect = outer.ctx.canvas.getBoundingClientRect();
             if (e.which === 3) {// 右键3， 左键1， 滚轮2
-                //解除闪现
-                if(outer.cur_skill === "fastmove")
-                {
-                    outer.cur_skill = null;
-                }
-                for (let i = 0; i < 10 + Math.random() * 10; i++) {
-                    let x = outer.x, y = outer.y;
-                    let radius = outer.playground.height * 0.03 * Math.random() * 0.1;
-                    let angle = Math.PI * 2 * Math.random();
-                    let vx = Math.cos(angle);
-                    let vy = Math.sin(angle);
-                    let color = outer.color;
-                    let speed = outer.playground.height * 0.15 * 5;
-                    let move_length = outer.playground.height * 0.03 * Math.random() * 3.5;
-                    new Particle(outer.playground, e.clientX - rect.left, e.clientY - rect.top, radius, vx, vy, "green", speed, move_length);
-                }
                 outer.move_to(x - rect.left, y - rect.top);
             }
             else if (e.which === 1) {
                 if (outer.cur_skill === "fireball") {
-                    // console.log(outer.cur_skill);   
+                    console.log(outer.cur_skill);   
                     outer.shoot_fireball(x - rect.left, y - rect.top);
                 }
                 else if(outer.cur_skill === "fastmove")
                 {
-                    // console.log(outer.cur_skill);
-                    //解除闪现
-                    outer.cur_skill = null;
-                }
-                
+                    console.log(outer.cur_skill);
+                    // this.x = x;
+                    // this.y = y;
 
+                }
                 outer.cur_skill = null;
             }
 
         });
+        // this.playground.game_map.$canvas.mousedown(function (e) {
+        //     const rect = outer.ctx.canvas.getBoundingClientRect();
+        //     if (e.which === 3) {// 右键3， 左键1， 滚轮2
+        //         outer.move_to(e.clientX - rect.left, e.clientY - rect.top);
+        //     }
+        //     else if (e.which === 1) {
+        //         if (outer.cur_skill === "fireball") {
+        //             console.log(outer.cur_skill);   
+        //             outer.shoot_fireball(e.clientX - rect.left, e.clientY - rect.top);
+        //         }
+        //         outer.cur_skill = null;
+        //     }
 
+        // });
+
+        // this.playground.game_map.$canvas.mousemove(function (e)
+        // {
+        //     const rect = outer.ctx.canvas.getBoundingClientRect();
+
+        //     if (outer.cur_skill === "fireball") {
+        //         console.log(outer.cur_skill);   
+        //         outer.shoot_fireball(x - rect.left, y - rect.top);
+        //     }
+        //     outer.cur_skill = null;
+        // });
         $(window).keydown(function (e) {
-            if (e.which === 81) { // q 火球
+            if (e.which === 81) { // q
                 outer.cur_skill = "fireball";
                 const rect = outer.ctx.canvas.getBoundingClientRect();
                 if (outer.cur_skill === "fireball") {
@@ -311,11 +296,9 @@ class Player extends ShiGameObject {
                 outer.cur_skill = null;
                 return false;
             }
-            else if(e.which === 87)// w 闪现
+            else if(e.which === 87)
             {
                 outer.cur_skill = "fastmove";
-                const rect = outer.ctx.canvas.getBoundingClientRect();
-                outer.move_to(x - rect.left, y - rect.top);
             }
 
         });
@@ -339,7 +322,7 @@ class Player extends ShiGameObject {
             if(this.playground.players[i] === this)
             {
                 new FireBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, damage);
-                // console.log("shoot to ", tx, ty);
+                console.log("shoot to ", tx, ty);
             }
         }
         
@@ -395,8 +378,7 @@ class Player extends ShiGameObject {
             let player = this.playground.players[Math.floor(Math.random() * this.playground.players.length)];       
             let tx = player.x + player.speed * this.vx * this.timedelta / 1000 * 1;
             let ty = player.y + player.speed * this.vy * this.timedelta / 1000 * 1;
-            if(player != this)
-                this.shoot_fireball(tx, ty);
+            this.shoot_fireball(tx, ty);
         }
 
         if (this.damage_speed > 10) {
@@ -416,47 +398,23 @@ class Player extends ShiGameObject {
                 }
             }
             else {
-                //闪现技能
-                if(this.cur_skill === "fastmove")
-                {
-                    this.speed = 1000000 * this.speed_old;
-                }
-                else if (this.is_me){
-                    //单机版开挂
-                    this.speed = 3 * this.speed_old;
-                }
-
                 let moved = Math.min(this.move_length, this.speed * this.timedelta / 1000);
+                if (this.is_me) moved *= 2.5;
+                if(this,this.cur_skill === "fastmove") moved *= 10;
                 this.x += this.vx * moved;
                 this.y += this.vy * moved;
                 this.move_length -= moved;
             }
         }
-        
-        this.render();
-
-        //游戏结束
-        if(last_timestamp - game_over_time >= 500 && game_over === -1)
+        if(this.playground.players.length === 1)
         {
-            game_over = 0;
-            console.log(game_is_win);
-            if(game_is_win === -1)
-            {
-                window.alert("你输了");
-                if(this.playground.players.length === 1)
-                    location.reload();
-                game_is_win = 0;
-            }
-            else
-            {
-                if(game_is_win === 1)window.alert("恭喜胜利，接下来返回主菜单");
-                else window.alert("游戏结束，接下来返回主菜单");
-                // window.location.replace("https://app171.acapp.acwing.com.cn");
-                location.reload();
-            }
-            
-        }
+            setTimeout(window.alert("游戏结束"), 10000);
 
+            // setTimeout(after(), 1000);
+                
+            // location.reload();
+        }
+        this.render();
     }
 
     on_destory()
@@ -465,21 +423,9 @@ class Player extends ShiGameObject {
         {
             if(this.playground.players[i] === this)
             {
-
-                // 判断是否为输
-                // console.log(this.is_me);
-                if(this.is_me){
-                    game_is_win = -1;
-                    game_over = 1;
-                }
                 this.playground.players.splice(i, 1);
                 console.log("on_destory");
             }
-        }
-        // 判定游戏结束
-        if(this.playground.players.length === 1)
-        {
-            game_over = 1;
         }
 
     }
@@ -497,17 +443,10 @@ class Player extends ShiGameObject {
             this.ctx.drawImage(this.img, this.x - this.radius, this.y - this.radius, this.radius * 2, this.radius * 2); 
             this.ctx.restore();
         }else{
-            // this.ctx.beginPath();
-            // this.ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
-            // this.ctx.fillStyle = this.color;
-            // this.ctx.fill();
-            this.ctx.save();
             this.ctx.beginPath();
             this.ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
-            this.ctx.stroke();
-            this.ctx.clip();
-            this.ctx.drawImage(this.img, this.x - this.radius, this.y - this.radius, this.radius * 2, this.radius * 2); 
-            this.ctx.restore();
+            this.ctx.fillStyle = this.color;
+            this.ctx.fill();
         }
         
     }
@@ -623,7 +562,6 @@ class ShiGamePlayground {
         console.log("start playground");
     }
     show() {
-        // window.alert("------------------\n欢迎游玩\n------------------\n本游戏尚在开发阶段\nQ为火球,W为闪现,右键移动\n祝您游玩愉快");
         this.$playground.show();
         this.root.$shi_game.append(this.$playground);
         this.width = this.$playground.width();
@@ -631,7 +569,7 @@ class ShiGamePlayground {
         this.game_map = new GameMap(this);
         this.players = [];
         for (let i = 0; i < 5; i++) {
-            this.players.push(new Player(this, this.width / 2, this.height / 2, this.height * 0.05, "black", this.height * 0.15, false));
+            this.players.push(new Player(this, this.width / 2, this.height / 2, this.height * 0.05, this.get_random_color(), this.height * 0.15, false));
         }
         this.players.push(new Player(this, this.width / 2, this.height / 2, this.height * 0.05, "white", this.height * 0.15, true));
 
@@ -691,7 +629,7 @@ class ShiGamePlayground {
         <div class="shi_game_settings_acwing">
             <img width="30" src="https://app171.acapp.acwing.com.cn/static/image/settings/acwing_logo.png">
             <br>
-            <div>一键登录</div>
+            <div>AcWing 一键登录</div>
         </div>
 
     </div>
@@ -743,7 +681,7 @@ class ShiGamePlayground {
         <div class="shi_game_settings_acwing">
             <img width="30" src="https://app171.acapp.acwing.com.cn/static/image/settings/acwing_logo.png">
             <br>
-            <div>一键登录</div>
+            <div>AcWing 一键登录</div>
         </div>
 
     </div>
@@ -1036,3 +974,14 @@ export class ShiGame {
         console.log("start")
     }
 }
+function sleep3(ms) {
+    return new Promise(function(resolve, reject) {
+        setTimeout(resolve, ms)
+    })
+}
+async function init() {
+    await sleep3(1000);
+}
+init().then(() => {
+    console.log(3000)
+})
