@@ -14,7 +14,7 @@ class FireBall extends ShiGameObject {
         this.color = color;
         this.speed = speed;
         this.damage = damage;
-        this.eps = 0.1;
+        this.eps = 0.01;
         // console.log(this.player);
         // console.log(this.player.is_me);
 
@@ -70,8 +70,9 @@ class FireBall extends ShiGameObject {
     }
 
     render() {
+        let scale = this.playground.scale;
         this.ctx.beginPath();
-        this.ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+        this.ctx.arc(this.x * scale, this.y * scale, this.radius * scale, 0, Math.PI * 2, false);
         this.ctx.fillStyle = this.color;
         this.ctx.fill();
 

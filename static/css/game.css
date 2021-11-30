@@ -41,6 +41,15 @@
     width: 100%;
     height: 100%;
     user-select: none;
+    background-color: rgba(176,223,230) ;
+    background-color: rgb(1, 2, 2) ;
+}
+.shi_game_playground > canvas
+{
+    position: relative;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }
 
 .shi_game_settings

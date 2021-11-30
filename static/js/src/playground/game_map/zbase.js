@@ -18,11 +18,18 @@ class GameMap extends ShiGameObject {
 
         this.render();
     }
+    //更新地图
+    resize()
+    {
+        this.ctx.canvas.width = this.playground.width;
+        this.ctx.canvas.height = this.playground.height;
+        this.render();
+
+    }
 
     render() {
         // this.ctx.fillStyle = "rgba(53, 55, 75, 0.3)";
         this.ctx.fillStyle = "rgba(176,224,230, 0.6)";
-
         this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
     }
 

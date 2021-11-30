@@ -16,7 +16,7 @@ class Player extends ShiGameObject {
         this.move_length = 0;
         this.speed = speed;
         this.is_me = is_me;
-        this.eps = 0.1;
+        this.eps = 0.01;
         this.friction = 0.9;
         this.spent_time = 0;
         this.cur_skill = null;
@@ -39,8 +39,8 @@ class Player extends ShiGameObject {
             this.add_listening_events();
         }
         else {
-            let tx = Math.random() * this.playground.width;
-            let ty = Math.random() * this.playground.height;
+            let tx = Math.random() * this.playground.width / this.playground.scale;
+            let ty = Math.random() * this.playground.height / this.playground.scale;
             this.move_to(tx, ty);
         }
     }
@@ -64,6 +64,7 @@ class Player extends ShiGameObject {
         });
         this.playground.game_map.$canvas.mousedown(function (e) {
             const rect = outer.ctx.canvas.getBoundingClientRect();
+            console.log("111");
             if (e.which === 3) {// 右键3， 左键1， 滚轮2
                 //解除闪现
                 if(outer.cur_skill === "fastmove")
@@ -71,22 +72,21 @@ class Player extends ShiGameObject {
                     outer.cur_skill = null;
                 }
                 for (let i = 0; i < 10 + Math.random() * 10; i++) {
-                    let x = outer.x, y = outer.y;
-                    let radius = outer.playground.height * 0.03 * Math.random() * 0.1;
-                    let angle = Math.PI * 2 * Math.random();
-                    let vx = Math.cos(angle);
-                    let vy = Math.sin(angle);
+                    let px = (x - rect.left) / outer.playground.scale, py = (y - rect.top) / outer.playground.scale;
+                    let radius = outer.radius * Math.random() * 0.08;
+                    let angle = Math.random() * Math.PI * 2;
+                    let vx = Math.cos(angle), vy = Math.sin(angle);
                     let color = outer.color;
-                    let speed = outer.playground.height * 0.15 * 5;
-                    let move_length = outer.playground.height * 0.03 * Math.random() * 3.5;
-                    new Particle(outer.playground, e.clientX - rect.left, e.clientY - rect.top, radius, vx, vy, "green", speed, move_length);
+                    let speed = outer.speed * 0.15 * 5;
+                    let move_length = outer.radius * Math.random() * 2;
+                    new Particle(outer.playground, px, py, radius, vx, vy, "green", speed, move_length);
                 }
-                outer.move_to(x - rect.left, y - rect.top);
+                outer.move_to((x - rect.left) / outer.playground.scale, (y - rect.top) / outer.playground.scale) / outer.playground.scale;
             }
             else if (e.which === 1) {
                 if (outer.cur_skill === "fireball") {
                     // console.log(outer.cur_skill);   
-                    outer.shoot_fireball(x - rect.left, y - rect.top);
+                    outer.shoot_fireball((x - rect.left) / outer.playground.scale, (y - rect.top) / outer.playground.scale) / outer.playground.scale;
                 }
                 else if(outer.cur_skill === "fastmove")
                 {
@@ -102,12 +102,12 @@ class Player extends ShiGameObject {
         });
 
         $(window).keydown(function (e) {
+            const rect = outer.ctx.canvas.getBoundingClientRect();
             if (e.which === 81) { // q 火球
                 outer.cur_skill = "fireball";
-                const rect = outer.ctx.canvas.getBoundingClientRect();
                 if (outer.cur_skill === "fireball") {
                     console.log(outer.cur_skill);   
-                    outer.shoot_fireball(x - rect.left, y - rect.top);
+                    outer.shoot_fireball((x - rect.left) / outer.playground.scale, (y - rect.top) / outer.playground.scale) / outer.playground.scale;
                 }
                 outer.cur_skill = null;
                 return false;
@@ -115,8 +115,7 @@ class Player extends ShiGameObject {
             else if(e.which === 87)// w 闪现
             {
                 outer.cur_skill = "fastmove";
-                const rect = outer.ctx.canvas.getBoundingClientRect();
-                outer.move_to(x - rect.left, y - rect.top);
+                outer.move_to((x - rect.left) / outer.playground.scale, (y - rect.top) / outer.playground.scale) / outer.playground.scale;
             }
 
         });
@@ -128,13 +127,13 @@ class Player extends ShiGameObject {
     shoot_fireball(tx, ty) {
         
         let x = this.x, y = this.y;
-        let radius = this.playground.height * 0.01;
+        let radius = 0.01;
         let angle = Math.atan2(ty - this.y, tx - this.x);
         let vx = Math.cos(angle), vy = Math.sin(angle);
         let color = "orange";
-        let speed = this.playground.height * 0.5;
-        let move_length = this.playground.height * 1;
-        let damage = this.playground.height * 0.01;
+        let speed = 0.5;
+        let move_length = 1;
+        let damage = 0.01 * 0.5;
         for(let i = 0; i < this.playground.players.length; i ++)
         {
             if(this.playground.players[i] === this)
@@ -176,7 +175,7 @@ class Player extends ShiGameObject {
             new Particle(this.playground, x, y, radius, vx, vy, color, speed, move_length);
         }
         this.radius -= damage;
-        if (this.radius < 10) {
+        if (this.radius < this.eps) {
             this.destory();
             return false;
         }
@@ -189,7 +188,13 @@ class Player extends ShiGameObject {
 
 
     }
-    update() {
+    update() 
+    {
+        this.update_move();
+        this.render();
+    }
+
+    update_move() {// 更新移动
         this.spent_time += this.timedelta / 1000;
         if(Math.random() < 1 / 250.0 && !this.is_me && this.spent_time > 4)
         {
@@ -200,7 +205,7 @@ class Player extends ShiGameObject {
                 this.shoot_fireball(tx, ty);
         }
 
-        if (this.damage_speed > 10) {
+        if (this.damage_speed > this.eps) {
             this.vx = 0, this.vy = 0;
             this.move_length = 0;
             this.x += this.damage_x * this.damage_speed * this.timedelta / 1000;
@@ -211,8 +216,8 @@ class Player extends ShiGameObject {
                 this.move_length = 0;
                 this.vx = this.vy = 0;
                 if (!this.is_me) {
-                    let tx = Math.random() * this.playground.width;
-                    let ty = Math.random() * this.playground.height;
+                    let tx = Math.random() * this.playground.width / this.playground.scale;
+                    let ty = Math.random() * this.playground.height / this.playground.scale;
                     this.move_to(tx, ty);
                 }
             }
@@ -234,7 +239,7 @@ class Player extends ShiGameObject {
             }
         }
         
-        this.render();
+       
 
         //游戏结束
         if(last_timestamp - game_over_time >= 500 && game_over === -1)
@@ -253,13 +258,15 @@ class Player extends ShiGameObject {
                 if(game_is_win === 1)window.alert("恭喜胜利，接下来返回主菜单");
                 else window.alert("游戏结束，接下来返回主菜单");
                 // window.location.replace("https://app171.acapp.acwing.com.cn");
-                location.reload();
+                // location.reload();
             }
             
         }
 
     }
 
+
+    
     on_destory()
     {
         for(let i = 0; i < this.playground.players.length; i ++)
@@ -287,15 +294,17 @@ class Player extends ShiGameObject {
 
     render() {
 
+        let scale = this.playground.scale;
+       
         if(this.is_me)
         {
 
             this.ctx.save();
             this.ctx.beginPath();
-            this.ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+            this.ctx.arc(this.x * scale, this.y * scale, this.radius * scale, 0, Math.PI * 2, false);
             this.ctx.stroke();
             this.ctx.clip();
-            this.ctx.drawImage(this.img, this.x - this.radius, this.y - this.radius, this.radius * 2, this.radius * 2); 
+            this.ctx.drawImage(this.img, (this.x - this.radius) * scale, (this.y - this.radius) * scale, this.radius * 2 * scale, this.radius * 2 * scale); 
             this.ctx.restore();
         }else{
             // this.ctx.beginPath();
@@ -304,10 +313,10 @@ class Player extends ShiGameObject {
             // this.ctx.fill();
             this.ctx.save();
             this.ctx.beginPath();
-            this.ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+            this.ctx.arc(this.x * scale, this.y * scale, this.radius * scale, 0, Math.PI * 2, false);
             this.ctx.stroke();
             this.ctx.clip();
-            this.ctx.drawImage(this.img, this.x - this.radius, this.y - this.radius, this.radius * 2, this.radius * 2); 
+            this.ctx.drawImage(this.img, (this.x - this.radius) * scale, (this.y - this.radius) * scale, this.radius * 2 * scale, this.radius * 2 * scale); 
             this.ctx.restore();
         }
         
