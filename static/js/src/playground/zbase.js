@@ -53,16 +53,17 @@ class ShiGamePlayground {
     show() {
         // window.alert("------------------\n欢迎游玩\n------------------\n本游戏尚在开发阶段\nQ为火球,W为闪现,右键移动\n祝您游玩愉快");
         this.$playground.show();
-        this.resize();
-        this.root.$shi_game.append(this.$playground);
-        this.width = this.$playground.width();
-        this.height = this.$playground.height();
-
-        let unit = Math.min(this.width / 16, this.height/ 9);
-        this.width = unit * 16;
-        this.height = unit * 9;
-        this.scale = this.height;
         
+        this.root.$shi_game.append(this.$playground);
+        // this.width = this.$playground.width();
+        // this.height = this.$playground.height();
+        //获取相对位置大小
+        // let unit = Math.min(this.width / 16, this.height/ 9);
+        // this.width = unit * 16;
+        // this.height = unit * 9;
+        // this.scale = this.height;
+        this.resize();
+        //生成game_map
         this.game_map = new GameMap(this);
         this.players = [];
         for (let i = 0; i < 5; i++) {
