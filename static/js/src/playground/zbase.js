@@ -40,7 +40,9 @@ class ShiGamePlayground {
 
     }
 
-    show() {
+    show(mode) 
+    {
+        let outer = this;
         // window.alert("------------------\n欢迎游玩\n------------------\n本游戏尚在开发阶段\nQ为火球,W为闪现,右键移动\n祝您游玩愉快");
         this.$playground.show();
         this.root.$shi_game.append(this.$playground);
@@ -49,10 +51,30 @@ class ShiGamePlayground {
         //生成game_map
         this.game_map = new GameMap(this);
         this.players = [];
-        for (let i = 0; i < 5; i++) {
-            this.players.push(new Player(this, this.width / 2 / this.scale, 0.5, 0.05, "black", 0.15, false));
+        if(mode === "single mode")
+        {
+            this.players.push(new Player(this, this.width / 2 / this.scale, 0.5, 0.05, "white", 0.15, "me", this.root.settings.username, this.root.settings.photo, "single"));
+
+            for (let i = 0; i < 5; i++) {
+                this.players.push(new Player(this, this.width / 2 / this.scale, 0.5, 0.05, "black", 0.15, "robot", "", "", "single"));
+            }
+
         }
-        this.players.push(new Player(this, this.width / 2 / this.scale, 0.5, 0.05, "white", 0.15, true));
+        else if(mode === "multi mode")
+        {
+            this.players.push(new Player(this, this.width / 2 / this.scale, 0.5, 0.05, "white", 0.15, "me", this.root.settings.username, this.root.settings.photo, "multi"));
+            this.mps = new MultiPlayerSocket(this);//新建wbesocket链接对象
+            this.mps.uuid = this.players[0].uuid;
+            this.mps.ws.onopen = function()//链接创建成功后回调函数
+            {
+                
+                outer.mps.send_create_player(outer.root.settings.username, outer.root.settings.photo);
+                
+            }
+
+            
+
+        }
 
 
     }

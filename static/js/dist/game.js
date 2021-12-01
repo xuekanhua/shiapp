@@ -39,10 +39,13 @@ class ShiGameMenu {
         this.$single_mode.click(function () {
             console.log("click single mode");
             outer.hide();
-            outer.root.playground.show();
+            outer.root.playground.show("single mode");
         });
         this.$multi_mode.click(function () {
             console.log("click multi mode");
+            outer.hide();
+            outer.root.playground.show("multi mode");
+
         });
         this.$settings.click(function () {
             console.log("click settings");
@@ -69,6 +72,18 @@ class ShiGameObject { //基类，文件夹前缀加个a
         SHI_GAME_OBJECTS.push(this);
         this.has_called_start = false; // 是否执行start函数
         this.timedelta = 0; // 当前帧距离上一帧的间隔
+        this.uuid = this.create_uuid();
+        console.log(this.uuid);
+    }
+    create_uuid()
+    {
+        let res = "";
+        for(let i = 0 ; i < 8; i ++)
+        {
+            let x = parseInt(Math.floor(Math.random() * 10));
+            res += x;
+        }
+        return res;
     }
     start() // 只在第一帧执行
     {
@@ -213,7 +228,8 @@ class Particle extends ShiGameObject {
     }
 }
 class Player extends ShiGameObject {
-    constructor(playground, x, y, radius, color, speed, is_me) {
+    constructor(playground, x, y, radius, color, speed, character, username, photo, user_mode) {
+        console.log(character, username, photo);
         super();
         this.playground = playground;
         this.ctx = this.playground.game_map.ctx;
@@ -228,27 +244,33 @@ class Player extends ShiGameObject {
         this.color = color;
         this.move_length = 0;
         this.speed = speed;
-        this.is_me = is_me;
+        this.character = character;
+        this,username = username;
+        this.photo = photo;
+        //单独判断player属于那种模式
+        this.user_mode = user_mode;
+        
         this.eps = 0.01;
         this.friction = 0.9;
         this.spent_time = 0;
         this.cur_skill = null;
         this.speed_old = this.speed;
-        if(this.is_me){
+        if(this.character !== "robot"){
             this.img = new Image();
-            this.img.src = this.playground.root.settings.photo;
+            this.img.src = this.photo;
         }
         else
         {
             this.img = new Image();
             this.img.src = "https://app171.acapp.acwing.com.cn/static/image/playground/huaidan.png"
         }
+        console.log(this.user_mode);
 
     }
 
 
     start() {
-        if (this.is_me) {
+        if (this.character === "me") {
             this.add_listening_events();
         }
         else {
@@ -332,6 +354,15 @@ class Player extends ShiGameObject {
                 outer.cur_skill = "fastmove";
                 //相对位置 
                 outer.move_to((x - rect.left) / outer.playground.scale, (y - rect.top) / outer.playground.scale) / outer.playground.scale;
+                return false;
+            }
+            else if(e.which === 69)// e 
+            {
+                outer.cur_skill = "zisha";
+                outer.is_attacked(0, 0.01 * 0.5);
+                outer.cur_skill = null;
+                return false;
+                
             }
 
         });
@@ -399,21 +430,20 @@ class Player extends ShiGameObject {
         this.damage_y = Math.sin(angle);
         this.damage_speed = damage * 100;
         this.speed *= 1.1;
-
-
-
-
     }
     update() 
     {
         this.update_move();
-        this.update_gameover();
+        if(this.user_mode === "single")
+        {
+            this.update_gameover();
+        }
         this.render();
     }
 
     update_move() {// 更新移动
         this.spent_time += this.timedelta / 1000;
-        if(Math.random() < 1 / 250.0 && !this.is_me && this.spent_time > 4)
+        if(Math.random() < 1 / 250.0 && this.character === "robot" && this.spent_time > 4)
         {
             let player = this.playground.players[Math.floor(Math.random() * this.playground.players.length)];       
             let tx = player.x + player.speed * this.vx * this.timedelta / 1000 * 1;
@@ -432,7 +462,7 @@ class Player extends ShiGameObject {
             if (this.move_length < this.eps) {
                 this.move_length = 0;
                 this.vx = this.vy = 0;
-                if (!this.is_me) {
+                if (this.character === "robot") {
                     let tx = Math.random() * this.playground.width / this.playground.scale;
                     let ty = Math.random() * this.playground.height / this.playground.scale;
                     this.move_to(tx, ty);
@@ -444,7 +474,7 @@ class Player extends ShiGameObject {
                 {
                     this.speed = 1000000 * this.speed_old;
                 }
-                else if (this.is_me){
+                else if (this.character === "me"){
                     //单机版开挂
                     this.speed = 3 * this.speed_old;
                 }
@@ -494,8 +524,8 @@ class Player extends ShiGameObject {
             {
 
                 // 判断是否为输
-                // console.log(this.is_me);
-                if(this.is_me){
+                // console.log(this.character);
+                if(this.character === "me"){
                     game_is_win = -1;
                     game_over = 1;
                 }
@@ -504,7 +534,7 @@ class Player extends ShiGameObject {
             }
         }
         // 判定游戏结束
-        if(this.playground.players.length === 1)
+        if(this.playground.players.length === 1 && this.playground.players[0].user_mode === "single")
         {
             game_over = 1;
         }
@@ -605,6 +635,83 @@ class FireBall extends ShiGameObject {
         this.ctx.fill();
 
     }
+}class MultiPlayerSocket
+{
+    constructor(playground)
+    {
+        this.playground = playground;
+        this.ws = new WebSocket("wss://app171.acapp.acwing.com.cn/wss/multiplayer/");
+
+        this.start();
+    }
+
+    start()
+    {
+        this.receive();
+        
+    }
+
+
+    receive()
+    {
+        let outer = this;
+        this.ws.onmessage = function(e)
+        {
+            
+            // 将string 转 json
+            let data = JSON.parse(e.data);
+            let uuid = data.uuid;
+
+            console.log(data);
+            console.log("uuuuu === ", uuid, data.uuid, outer.uuid);
+
+            if(uuid === outer.uuid)return false;
+
+            let event = data.event;
+            if(event === "create_player")
+            {
+                outer.receive_create_player(uuid, data.username, data.photo);
+            }
+
+
+        };
+
+
+    }
+
+
+    send_create_player(username, photo)
+    {
+        let outer = this;
+        this.ws.send(JSON.stringify(
+            {
+                'event' : "create_player",
+                'uuid': outer.uuid,
+                'username' : username,
+                'photo': photo,
+
+            }
+        ));
+    }
+    receive_create_player(uuid, username, photo)
+    {
+        let player = new Player(
+            this.playground,
+            this.playground.width / 2 / this.playground.scale, 
+            0.5, 
+            0.05, 
+            "white", 
+            0.15, 
+            "enemy",//敌人 
+            username, 
+            photo, 
+            "multi"
+        );
+        player.uuid = uuid;
+        this.playground.players.push(player);
+
+    }
+
 }
 class ShiGamePlayground {
     constructor(root) {
@@ -647,7 +754,9 @@ class ShiGamePlayground {
 
     }
 
-    show() {
+    show(mode) 
+    {
+        let outer = this;
         // window.alert("------------------\n欢迎游玩\n------------------\n本游戏尚在开发阶段\nQ为火球,W为闪现,右键移动\n祝您游玩愉快");
         this.$playground.show();
         this.root.$shi_game.append(this.$playground);
@@ -656,10 +765,30 @@ class ShiGamePlayground {
         //生成game_map
         this.game_map = new GameMap(this);
         this.players = [];
-        for (let i = 0; i < 5; i++) {
-            this.players.push(new Player(this, this.width / 2 / this.scale, 0.5, 0.05, "black", 0.15, false));
+        if(mode === "single mode")
+        {
+            this.players.push(new Player(this, this.width / 2 / this.scale, 0.5, 0.05, "white", 0.15, "me", this.root.settings.username, this.root.settings.photo, "single"));
+
+            for (let i = 0; i < 5; i++) {
+                this.players.push(new Player(this, this.width / 2 / this.scale, 0.5, 0.05, "black", 0.15, "robot", "", "", "single"));
+            }
+
         }
-        this.players.push(new Player(this, this.width / 2 / this.scale, 0.5, 0.05, "white", 0.15, true));
+        else if(mode === "multi mode")
+        {
+            this.players.push(new Player(this, this.width / 2 / this.scale, 0.5, 0.05, "white", 0.15, "me", this.root.settings.username, this.root.settings.photo, "multi"));
+            this.mps = new MultiPlayerSocket(this);//新建wbesocket链接对象
+            this.mps.uuid = this.players[0].uuid;
+            this.mps.ws.onopen = function()//链接创建成功后回调函数
+            {
+                
+                outer.mps.send_create_player(outer.root.settings.username, outer.root.settings.photo);
+                
+            }
+
+            
+
+        }
 
 
     }

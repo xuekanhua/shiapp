@@ -1,6 +1,7 @@
 
 class Player extends ShiGameObject {
-    constructor(playground, x, y, radius, color, speed, is_me) {
+    constructor(playground, x, y, radius, color, speed, character, username, photo, user_mode) {
+        console.log(character, username, photo);
         super();
         this.playground = playground;
         this.ctx = this.playground.game_map.ctx;
@@ -15,27 +16,33 @@ class Player extends ShiGameObject {
         this.color = color;
         this.move_length = 0;
         this.speed = speed;
-        this.is_me = is_me;
+        this.character = character;
+        this,username = username;
+        this.photo = photo;
+        //单独判断player属于那种模式
+        this.user_mode = user_mode;
+        
         this.eps = 0.01;
         this.friction = 0.9;
         this.spent_time = 0;
         this.cur_skill = null;
         this.speed_old = this.speed;
-        if(this.is_me){
+        if(this.character !== "robot"){
             this.img = new Image();
-            this.img.src = this.playground.root.settings.photo;
+            this.img.src = this.photo;
         }
         else
         {
             this.img = new Image();
             this.img.src = "https://app171.acapp.acwing.com.cn/static/image/playground/huaidan.png"
         }
+        console.log(this.user_mode);
 
     }
 
 
     start() {
-        if (this.is_me) {
+        if (this.character === "me") {
             this.add_listening_events();
         }
         else {
@@ -119,6 +126,15 @@ class Player extends ShiGameObject {
                 outer.cur_skill = "fastmove";
                 //相对位置 
                 outer.move_to((x - rect.left) / outer.playground.scale, (y - rect.top) / outer.playground.scale) / outer.playground.scale;
+                return false;
+            }
+            else if(e.which === 69)// e 
+            {
+                outer.cur_skill = "zisha";
+                outer.is_attacked(0, 0.01 * 0.5);
+                outer.cur_skill = null;
+                return false;
+                
             }
 
         });
@@ -186,21 +202,20 @@ class Player extends ShiGameObject {
         this.damage_y = Math.sin(angle);
         this.damage_speed = damage * 100;
         this.speed *= 1.1;
-
-
-
-
     }
     update() 
     {
         this.update_move();
-        this.update_gameover();
+        if(this.user_mode === "single")
+        {
+            this.update_gameover();
+        }
         this.render();
     }
 
     update_move() {// 更新移动
         this.spent_time += this.timedelta / 1000;
-        if(Math.random() < 1 / 250.0 && !this.is_me && this.spent_time > 4)
+        if(Math.random() < 1 / 250.0 && this.character === "robot" && this.spent_time > 4)
         {
             let player = this.playground.players[Math.floor(Math.random() * this.playground.players.length)];       
             let tx = player.x + player.speed * this.vx * this.timedelta / 1000 * 1;
@@ -219,7 +234,7 @@ class Player extends ShiGameObject {
             if (this.move_length < this.eps) {
                 this.move_length = 0;
                 this.vx = this.vy = 0;
-                if (!this.is_me) {
+                if (this.character === "robot") {
                     let tx = Math.random() * this.playground.width / this.playground.scale;
                     let ty = Math.random() * this.playground.height / this.playground.scale;
                     this.move_to(tx, ty);
@@ -231,7 +246,7 @@ class Player extends ShiGameObject {
                 {
                     this.speed = 1000000 * this.speed_old;
                 }
-                else if (this.is_me){
+                else if (this.character === "me"){
                     //单机版开挂
                     this.speed = 3 * this.speed_old;
                 }
@@ -281,8 +296,8 @@ class Player extends ShiGameObject {
             {
 
                 // 判断是否为输
-                // console.log(this.is_me);
-                if(this.is_me){
+                // console.log(this.character);
+                if(this.character === "me"){
                     game_is_win = -1;
                     game_over = 1;
                 }
@@ -291,7 +306,7 @@ class Player extends ShiGameObject {
             }
         }
         // 判定游戏结束
-        if(this.playground.players.length === 1)
+        if(this.playground.players.length === 1 && this.playground.players[0].user_mode === "single")
         {
             game_over = 1;
         }

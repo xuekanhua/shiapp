@@ -34,7 +34,7 @@ def receive_code(request):
         return JsonResponse({
             'result':"state not exist"
         })
-    # cache.delete(state)
+    cache.delete(state)
 
 
     apply_access_token_url = "https://www.acwing.com/third_party/api/oauth2/access_token/"

@@ -1,0 +1,78 @@
+class MultiPlayerSocket
+{
+    constructor(playground)
+    {
+        this.playground = playground;
+        this.ws = new WebSocket("wss://app171.acapp.acwing.com.cn/wss/multiplayer/");
+
+        this.start();
+    }
+
+    start()
+    {
+        this.receive();
+        
+    }
+
+
+    receive()
+    {
+        let outer = this;
+        this.ws.onmessage = function(e)
+        {
+            
+            // 将string 转 json
+            let data = JSON.parse(e.data);
+            let uuid = data.uuid;
+
+            console.log(data);
+            console.log("uuuuu === ", uuid, data.uuid, outer.uuid);
+
+            if(uuid === outer.uuid)return false;
+
+            let event = data.event;
+            if(event === "create_player")
+            {
+                outer.receive_create_player(uuid, data.username, data.photo);
+            }
+
+
+        };
+
+
+    }
+
+
+    send_create_player(username, photo)
+    {
+        let outer = this;
+        this.ws.send(JSON.stringify(
+            {
+                'event' : "create_player",
+                'uuid': outer.uuid,
+                'username' : username,
+                'photo': photo,
+
+            }
+        ));
+    }
+    receive_create_player(uuid, username, photo)
+    {
+        let player = new Player(
+            this.playground,
+            this.playground.width / 2 / this.playground.scale, 
+            0.5, 
+            0.05, 
+            "white", 
+            0.15, 
+            "enemy",//敌人 
+            username, 
+            photo, 
+            "multi"
+        );
+        player.uuid = uuid;
+        this.playground.players.push(player);
+
+    }
+
+}

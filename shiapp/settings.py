@@ -31,6 +31,7 @@ ALLOWED_HOSTS = ["47.95.3.50", "app171.acapp.acwing.com.cn"]
 # Application definition
 
 INSTALLED_APPS = [
+    'channels',
     "game.apps.GameConfig",
     'django.contrib.admin',
     'django.contrib.auth',
@@ -139,3 +140,17 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media') # 存用户文件
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# websocket   channel_redias
+ASGI_APPLICATION = 'shiapp.asgi.application'
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("127.0.0.1", 6379)],
+        },
+    },
+}
+
+ROOM_CAPACITY = 3
