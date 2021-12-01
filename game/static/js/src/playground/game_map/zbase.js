@@ -23,7 +23,10 @@ class GameMap extends ShiGameObject {
     {
         this.ctx.canvas.width = this.playground.width;
         this.ctx.canvas.height = this.playground.height;
-        this.render();
+
+        this.ctx.fillStyle = "rgba(176,224,230, 1)";
+        this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+        // this.render();
 
     }
 

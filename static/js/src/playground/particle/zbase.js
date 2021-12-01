@@ -31,8 +31,6 @@ class Particle extends ShiGameObject {
         this.speed *= this.friction;
         this.move_length -= moved;
 
-        
-
         this.render();
     }
     render() {

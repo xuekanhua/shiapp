@@ -9,6 +9,9 @@
 </head>
 
 <body style="margin: 0">
+    <script language="Javascript">
+        document.oncontextmenu = function(){return false;}
+    </script>
     <div id="shi_game_12345678"></div>
     <script type="module">
         import {ShiGame} from "{% static 'js/dist/game.js' %}"
