@@ -73,7 +73,7 @@ class ShiGameObject { //基类，文件夹前缀加个a
         this.has_called_start = false; // 是否执行start函数
         this.timedelta = 0; // 当前帧距离上一帧的间隔
         this.uuid = this.create_uuid();
-        console.log(this.uuid);
+        // console.log(this.uuid);
     }
     create_uuid()
     {
@@ -149,8 +149,13 @@ class GameMap extends ShiGameObject {
         this.playground = playground;
         this.$canvas = $(`<canvas></canvas>`);
         this.ctx = this.$canvas[0].getContext('2d');
-        this.ctx.canvas.width = this.playground.width;
-        this.ctx.canvas.height = this.playground.height;
+        this.width = this.playground.width;
+        this.height = this.playground.height;
+        this.map_width = this.playground.map_width;
+        this.map_height = this.playground.map_height;
+        this.ctx.canvas.width = this.map_width;
+        this.ctx.canvas.height = this.map_height;
+
         this.playground.$playground.append(this.$canvas);
 
     }
@@ -165,9 +170,8 @@ class GameMap extends ShiGameObject {
     //更新地图
     resize()
     {
-        this.ctx.canvas.width = this.playground.width;
-        this.ctx.canvas.height = this.playground.height;
-
+        this.ctx.canvas.width = this.playground.map_width;
+        this.ctx.canvas.height = this.playground.map_height;
         this.ctx.fillStyle = "rgba(176,224,230, 1)";
         this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
         // this.render();
@@ -181,7 +185,34 @@ class GameMap extends ShiGameObject {
         this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
     }
 
+}class NoticeBoard extends ShiGameObject {
+    constructor(playground) {
+        super();
+
+        this.playground = playground;
+        this.ctx = this.playground.game_map.ctx;
+        this.text = "已就绪：0人";
+    }
+
+    start() {
+    }
+
+    write(text) {
+        this.text = text;
+    }
+
+    update() {
+        this.render();
+    }
+
+    render() {
+        this.ctx.font = "20px serif";
+        this.ctx.fillStyle = "black";
+        this.ctx.textAlign = "center";
+        this.ctx.fillText(this.text, this.playground.width / 2, 20);
+    }
 }
+
 class Particle extends ShiGameObject {
     constructor(playground, x, y, radius, vx, vy, color, speed, move_length) {
         super();
@@ -218,9 +249,15 @@ class Particle extends ShiGameObject {
     }
     render() {
         let scale = this.playground.scale;
+        // let ctx_x = this.x - this.playground.cx, ctx_y = this.y - this.playground.cy; // 把虚拟地图中的坐标换算成canvas中的坐标
+        // if (ctx_x < -0.1 * this.playground.width || ctx_x > 1.1 * this.playground.width || ctx_y < -0.1 * this.playground.height || ctx_y > 1.1 * this.playground.height) {
+            // return;
+        // }
+
 
         this.ctx.beginPath();
         this.ctx.arc(this.x * scale, this.y * scale, this.radius * scale, 0, Math.PI * 2, false);
+        // this.ctx.arc(ctx_x * scale, ctx_y * scale, this.radius * scale, 0, Math.PI * 2, false);
         this.ctx.fillStyle = this.color;
         this.ctx.fill();
 
@@ -255,6 +292,9 @@ class Player extends ShiGameObject {
         this.spent_time = 0;
         this.cur_skill = null;
         this.speed_old = this.speed;
+
+        this.fireballs = [];
+
         if(this.character !== "robot"){
             this.img = new Image();
             this.img.src = this.photo;
@@ -266,14 +306,33 @@ class Player extends ShiGameObject {
         }
         console.log(this.user_mode);
 
+        if(this.character === "me")
+        {
+            this.fireball_coldtime = 3;
+            this.fireball_img = new Image();
+            this.fireball_img.src = "https://cdn.acwing.com/media/article/image/2021/12/02/1_9340c86053-fireball.png";
+
+            this.blink_coldtime = 5;
+            this.blink_img = new Image();
+            this.blink_img.src = "https://cdn.acwing.com/media/article/image/2021/12/02/1_daccabdc53-blink.png";
+
+        }
+
     }
 
 
     start() {
+        this.playground.player_count ++;
+        this.playground.notice_board.write("已就绪：" + this.playground.player_count);
+        if(this.playground.player_count >= 3)
+        {
+            this.playground.state = "fighting";
+            this.playground.notice_board.write("Fighting");
+        }
         if (this.character === "me") {
             this.add_listening_events();
         }
-        else {
+        else if(this.character === "robot"){
             let tx = Math.random() * this.playground.width / this.playground.scale;
             let ty = Math.random() * this.playground.height / this.playground.scale;
             this.move_to(tx, ty);
@@ -282,25 +341,35 @@ class Player extends ShiGameObject {
 
     add_listening_events() {
         let outer = this;
-        let x, y;//鼠标位置坐标
+        let m_x, m_y;//鼠标位置坐标
         //获取移动位置
         this.playground.game_map.$canvas.mousemove(function (e)
         {
-            x = e.clientX, y = e.clientY;
+            m_x = e.clientX, m_y = e.clientY;
         });
         //获取点击位置
         this.playground.game_map.$canvas.mousedown(function (e)
         {
-            x = e.clientX, y = e.clientY;
+            m_x = e.clientX, m_y = e.clientY;
         });
         // 禁用右键菜单
         this.playground.game_map.$canvas.on("contextmenu", function () {
             return false;
         });
         this.playground.game_map.$canvas.mousedown(function (e) {
+            // console.log(outer.playground.state);
+            if(outer.playground.state !== 'fighting') 
+            {
+                return false;
+            }
+
             const rect = outer.ctx.canvas.getBoundingClientRect();
+            let ctx_x = e.clientX - rect.left + outer.playground.cx, ctx_y = e.clientY - rect.top + outer.playground.cy;
+
             if (e.which === 3) {// 右键3， 左键1， 滚轮2
                 //解除闪现
+                let px = (m_x - rect.left) / outer.playground.scale, py = (m_y - rect.top) / outer.playground.scale;
+                let tx = px, ty = py;
                 if(outer.cur_skill === "fastmove")
                 {
                     outer.cur_skill = null;
@@ -308,7 +377,6 @@ class Player extends ShiGameObject {
                 //点击地图的粒子效果
                 for (let i = 0; i < 10 + Math.random() * 10; i++) {
                     //相对位置 
-                    let px = (x - rect.left) / outer.playground.scale, py = (y - rect.top) / outer.playground.scale;
                     let radius = outer.radius * Math.random() * 0.08;
                     let angle = Math.random() * Math.PI * 2;
                     let vx = Math.cos(angle), vy = Math.sin(angle);
@@ -317,20 +385,59 @@ class Player extends ShiGameObject {
                     let move_length = outer.radius * Math.random() * 2;
                     new Particle(outer.playground, px, py, radius, vx, vy, "green", speed, move_length);
                 }
-                //相对位置 
-                outer.move_to((x - rect.left) / outer.playground.scale, (y - rect.top) / outer.playground.scale) / outer.playground.scale;
+                // 相对位置 
+
+                outer.move_to(px, py);
+
+                if(outer.playground.mode === "multi mode")
+                {
+                    outer.playground.mps.send_move_to(tx, ty);
+                }
+                // if (ctx_x < 0 || ctx_x > outer.playground.virtual_map_width || ctx_y < 0 || ctx_y > outer.playground.virtual_map_height) return; // 不能向地图外移动
+                // outer.move_to(e.clientX - rect.left + outer.playground.cx, e.clientY - rect.top + outer.playground.cy);
+
+
             }
             else if (e.which === 1) {
+                
+                let tx = (m_x - rect.left) / outer.playground.scale, ty = (m_y - rect.top) / outer.playground.scale;
                 if (outer.cur_skill === "fireball") {
                     // console.log(outer.cur_skill);   
                     //相对位置 
-                    outer.shoot_fireball((x - rect.left) / outer.playground.scale, (y - rect.top) / outer.playground.scale) / outer.playground.scale;
+                    if(outer.fireball_coldtime > outer.eps)
+                    {
+                        return false;
+                    }
+                    let fireball = outer.shoot_fireball(tx, ty);
+                    outer.fireball_coldtime = 3;
+                    
+                    // outer.shoot_fireball(ctx_x / outer.playground.scale, ctx_y / outer.playground.scale) / outer.playground.scale;
+                    if(outer.playground.mode === "multi mode")
+                    {
+                        outer.playground.mps.send_shoot_fireball(tx, ty, fireball.uuid);
+                    }
                 }
                 else if(outer.cur_skill === "fastmove")
                 {
                     // console.log(outer.cur_skill);
+                    // outer.shoot_fireball((m_x - rect.left) / outer.playground.scale, (m_y - rect.top) / outer.playground.scale) / outer.playground.scale;
                     //解除闪现
                     outer.cur_skill = null;
+                }
+                else if(outer.cur_skill === "blink")
+                {
+                    if(outer.blink_coldtime > outer.eps)
+                    {
+                        return false;
+                    }
+                    outer.blink(tx, ty);
+                    outer.cur_skill = null;
+                    outer.blink_coldtime = 5;
+                    if(outer.playground.mode === "multi mode")
+                    {
+                        outer.playground.mps.send_blink(tx, ty);
+                    }
+
                 }
                 outer.cur_skill = null;
             }
@@ -338,22 +445,31 @@ class Player extends ShiGameObject {
         });
 
         $(window).keydown(function (e) {
+            if(outer.playground.state !== 'fighting') 
+            {
+                return true;
+            }
+
             const rect = outer.ctx.canvas.getBoundingClientRect();
             if (e.which === 81) { // q 火球
-                outer.cur_skill = "fireball";
-                if (outer.cur_skill === "fireball") {
-                    console.log(outer.cur_skill);  
-                    //相对位置 
-                    outer.shoot_fireball((x - rect.left) / outer.playground.scale, (y - rect.top) / outer.playground.scale) / outer.playground.scale;
+                if(outer.fireball_coldtime > outer.eps)
+                {
+                    return true;
                 }
-                outer.cur_skill = null;
+                outer.cur_skill = "fireball";
+                // if (outer.cur_skill === "fireball") {
+                //     console.log(outer.cur_skill);  
+                //     //相对位置 
+                //     outer.shoot_fireball((m_x - rect.left) / outer.playground.scale, (m_y - rect.top) / outer.playground.scale) / outer.playground.scale;
+                // }
+                // outer.cur_skill = null;
                 return false;
             }
             else if(e.which === 87)// w 闪现
             {
                 outer.cur_skill = "fastmove";
                 //相对位置 
-                outer.move_to((x - rect.left) / outer.playground.scale, (y - rect.top) / outer.playground.scale) / outer.playground.scale;
+                // outer.move_to((m_x - rect.left) / outer.playground.scale, (m_y - rect.top) / outer.playground.scale) / outer.playground.scale;
                 return false;
             }
             else if(e.which === 69)// e 
@@ -361,6 +477,16 @@ class Player extends ShiGameObject {
                 outer.cur_skill = "zisha";
                 outer.is_attacked(0, 0.01 * 0.5);
                 outer.cur_skill = null;
+                return false;
+                
+            }
+            else if(e.which === 70)// e 
+            {
+                if(outer.blink_coldtime > outer.eps)
+                {
+                    return true;
+                }
+                outer.cur_skill = "blink";
                 return false;
                 
             }
@@ -381,16 +507,22 @@ class Player extends ShiGameObject {
         let speed = 0.5;
         let move_length = 1;
         let damage = 0.01 * 0.5;
-        for(let i = 0; i < this.playground.players.length; i ++)
-        {
-            if(this.playground.players[i] === this)
-            {
-                new FireBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, damage);
-                // console.log("shoot to ", tx, ty);
-            }
-        }
+
+        let fireball = new FireBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, damage);
+        this.fireballs.push(fireball);
+
         
-        
+        return fireball;
+    }
+
+    blink(tx, ty)
+    {
+        let d = this.get_dist(this.x, this.y, tx, ty)
+        d = Math.min(d, 0.8);
+        let angle = Math.atan2(ty - this.y, tx - this.x);
+        this.x += d * Math.cos(angle);
+        this.y += d * Math.sin(angle);
+        this.move_length = 0; //闪现急停
 
     }
 
@@ -401,11 +533,12 @@ class Player extends ShiGameObject {
     }
 
     move_to(tx, ty) {
-        console.log("move to ", tx, ty);
+        // console.log("move to ", tx, ty);
         this.move_length = this.get_dist(this.x, this.y, tx, ty);
         let angle = Math.atan2(ty - this.y, tx - this.x);
         this.vx = Math.cos(angle);
         this.vy = Math.sin(angle);
+
 
 
     }
@@ -417,7 +550,7 @@ class Player extends ShiGameObject {
             let angle = Math.random() * Math.PI * 2;
             let vx = Math.cos(angle), vy = Math.sin(angle);
             let color = this.color;
-            let speed = this.speed * 15;
+            let speed = this.speed * 15 / 3;
             let move_length = this.radius * Math.random() * 5;
             new Particle(this.playground, x, y, radius, vx, vy, color, speed, move_length);
         }
@@ -431,24 +564,58 @@ class Player extends ShiGameObject {
         this.damage_speed = damage * 100;
         this.speed *= 1.1;
     }
+    re_calculate_cx_cy() {
+        this.playground.cx = this.x - 0.5 * this.playground.width / this.playground.scale;
+        this.playground.cy = this.y - 0.5 * this.playground.height / this.playground.scale;
+    }
+
+    receive_attacked(x, y, angle, damage, ball_uuid, attacker)
+    {
+        attacker.destory_fireball(ball_uuid);
+        this.x = x;
+        this.y = y;
+        this.is_attacked(angle, damage);
+        
+        
+    }
+
     update() 
     {
+        this.spent_time += this.timedelta / 1000;
         this.update_move();
+        
         if(this.user_mode === "single")
         {
             this.update_gameover();
         }
+        if(this.character === "me" && this.playground.state === "fighting")
+        {
+            this.update_coldtime();
+
+        }
+
+
+        // if (this.character === "me") this.re_calculate_cx_cy();
+
         this.render();
     }
 
+    update_coldtime()
+    {
+        this.fireball_coldtime -= this.timedelta / 1000;
+        this.fireball_coldtime = Math.max(0, this.fireball_coldtime);
+        this.blink_coldtime -= this.timedelta / 1000;
+        this.blink_coldtime = Math.max(0, this.blink_coldtime);
+        // console.log(this.fireball_coldtime);
+    }
+
     update_move() {// 更新移动
-        this.spent_time += this.timedelta / 1000;
         if(Math.random() < 1 / 250.0 && this.character === "robot" && this.spent_time > 4)
         {
             let player = this.playground.players[Math.floor(Math.random() * this.playground.players.length)];       
             let tx = player.x + player.speed * this.vx * this.timedelta / 1000 * 1;
             let ty = player.y + player.speed * this.vy * this.timedelta / 1000 * 1;
-            if(player != this)
+            if(player !== this)
                 this.shoot_fireball(tx, ty);
         }
 
@@ -474,9 +641,12 @@ class Player extends ShiGameObject {
                 {
                     this.speed = 1000000 * this.speed_old;
                 }
-                else if (this.character === "me"){
-                    //单机版开挂
-                    this.speed = 3 * this.speed_old;
+                // else if (this.character === "me"){
+                //     //单机版开挂
+                //     this.speed = 2.5 * this.speed_old;
+                // }
+                else{
+                    this.speed = 2 * this.speed_old;
                 }
 
                 let moved = Math.min(this.move_length, this.speed * this.timedelta / 1000);
@@ -515,9 +685,26 @@ class Player extends ShiGameObject {
         }
 
     }
-    
+
+    destory_fireball(uuid)
+    {
+        for(let i = 0; i < this.fireballs.length; i ++)
+        {
+            let fireball = this.fireballs[i];
+            if( fireball.uuid === uuid)
+            {
+                fireball.destory();
+                break;
+            }
+        }
+    }
+
     on_destory()
     {
+        if(this.character === "me")
+        {
+            this.playground.state = "over";
+        }
         for(let i = 0; i < this.playground.players.length; i ++)
         {
             if(this.playground.players[i] === this)
@@ -531,6 +718,7 @@ class Player extends ShiGameObject {
                 }
                 this.playground.players.splice(i, 1);
                 console.log("on_destory");
+                break;
             }
         }
         // 判定游戏结束
@@ -545,6 +733,12 @@ class Player extends ShiGameObject {
     render()//更新画布 
     {
         let scale = this.playground.scale;
+        // let ctx_x = this.x - this.playground.cx, ctx_y = this.y - this.playground.cy; // 把虚拟地图中的坐标换算成canvas中的坐标
+        // if (ctx_x < -0.2 * this.playground.width || ctx_x > 1.2 * this.playground.width || ctx_y < -0.2 * this.playground.height || ctx_y > 1.2 * this.playground.height) {
+        //     return;
+        // }
+        // this.ctx.arc(ctx_x * scale, ctx_y * scale, this.radius * scale, 0, Math.PI * 2, false);
+        // this.ctx.drawImage(this.img, (ctx_x - this.radius) * scale, (ctx_y - this.radius) * scale, this.radius * 2 * scale, this.radius * 2 * scale); 
         this.ctx.save();
         this.ctx.beginPath();
         this.ctx.arc(this.x * scale, this.y * scale, this.radius * scale, 0, Math.PI * 2, false);
@@ -552,7 +746,54 @@ class Player extends ShiGameObject {
         this.ctx.clip();
         this.ctx.drawImage(this.img, (this.x - this.radius) * scale, (this.y - this.radius) * scale, this.radius * 2 * scale, this.radius * 2 * scale); 
         this.ctx.restore();
+        if(this.character === "me" && this.playground.state === "fighting")
+        {
+            this.render_skill_clodtime();
+        }        
+    }
+    render_skill_clodtime()
+    {
+        let scale = this.playground.scale;
+        let fireball_x = 1.5, fireball_y = 0.9, fireball_r = 0.04;
+        this.ctx.save();
+        this.ctx.beginPath();
+        this.ctx.arc(fireball_x * scale, fireball_y * scale, fireball_r * scale, 0, Math.PI * 2, false);
+        this.ctx.stroke();
+        this.ctx.clip();
+        this.ctx.drawImage(this.fireball_img, (fireball_x - fireball_r) * scale, (fireball_y - fireball_r) * scale, fireball_r * 2 * scale, fireball_r * 2 * scale); 
+        this.ctx.restore();
+
+        let blink_x = 1.62, blink_y = 0.9, blink_r = 0.04;
+        this.ctx.save();
+        this.ctx.beginPath();
+        this.ctx.arc(blink_x * scale, blink_y * scale, blink_r * scale, 0, Math.PI * 2, false);
+        this.ctx.stroke();
+        this.ctx.clip();
+        this.ctx.drawImage(this.blink_img, (blink_x - blink_r) * scale, (blink_y - blink_r) * scale, blink_r * 2 * scale, blink_r * 2 * scale); 
+        this.ctx.restore();
+
+
+
+        if(this.fireball_coldtime > 0)
+        {
+            this.ctx.beginPath();
+            this.ctx.moveTo(fireball_x * scale, fireball_y * scale);
+            this.ctx.arc(fireball_x * scale, fireball_y * scale, fireball_r * scale, 0 - Math.PI / 2, Math.PI * 2 * (1 - this.fireball_coldtime / 3) - Math.PI / 2, true);
+            this.ctx.lineTo(fireball_x * scale, fireball_y * scale);
+            this.ctx.fillStyle = "rgba(0, 0, 255, 0.5)";
+            this.ctx.fill();
+        }
+        if(this.blink_coldtime > 0)
+        {
+            this.ctx.beginPath();
+            this.ctx.moveTo(blink_x * scale, blink_y * scale);
+            this.ctx.arc(blink_x * scale, blink_y * scale, blink_r * scale, 0 - Math.PI / 2, Math.PI * 2 * (1 - this.blink_coldtime / 5) - Math.PI / 2, true);
+            this.ctx.lineTo(blink_x * scale, blink_y * scale);
+            this.ctx.fillStyle = "rgba(0, 0, 255, 0.5)";
+            this.ctx.fill();
+        }
         
+
     }
 
 
@@ -582,10 +823,27 @@ class FireBall extends ShiGameObject {
 
     }
     update() {
-        if (this.move_length < this.eps) {
-            this.destory();
-            return false;
+        this.update_over();
+        this.update_move();
+        if(this.player.character !== "enemy")
+        {
+            this.update_attack();
         }
+        
+        this.render();
+
+    }
+
+    update_over()
+    {
+        if (this.move_length < this.eps) {
+        this.destory();
+        return false;
+    }
+
+    }
+    update_move()
+    {
         // console.log(this.move_length)
         let moved = Math.min(this.move_length, this.speed * this.timedelta / 1000);
         moved *= 1.5;
@@ -593,19 +851,19 @@ class FireBall extends ShiGameObject {
         this.x += this.vx * moved;
         this.y += this.vy * moved;
         this.move_length -= moved;
-
+    }
+    update_attack()
+    {
         for (let i = 0; i < this.playground.players.length; i++) {
             let player = this.playground.players[i];
             if (this.player !== player && this.is_collision(player)) {
                 this.attack(player);
+                break;
 
             }
         }
 
-        this.render();
-
     }
-
 
     get_dist(x1, y1, x2, y2) {
         let dx = x1 - x2;
@@ -624,13 +882,42 @@ class FireBall extends ShiGameObject {
     attack(player) {
         let angle = Math.atan2(player.y - this.y, player.x - this.x);
         player.is_attacked(angle, this.damage);
+
+        if(this.playground.mode === "multi mode")
+        {
+            
+            this.playground.mps.send_attack(player.uuid, player.x, player.y, angle, this.damage, this.uuid);
+        }
         this.destory();
     }
 
+
+    on_destory()
+    {
+        let fireballs = this.player.fireballs;
+        for(let i = 0; i < fireballs.length; i ++)
+        {
+            if(fireballs[i] === this)
+            {
+                fireballs.splice(i, 1);
+                break;
+            }
+        }
+    }
+
+
     render() {
         let scale = this.playground.scale;
+
+        // let ctx_x = this.x - this.playground.cx, ctx_y = this.y - this.playground.cy; // 把虚拟地图中的坐标换算成canvas中的坐标
+        // if (ctx_x < -0.1 * this.playground.width || ctx_x > 1.1 * this.playground.width || ctx_y < -0.1 * this.playground.height || ctx_y > 1.1 * this.playground.height) {
+        //     return;
+        // }
+
         this.ctx.beginPath();
         this.ctx.arc(this.x * scale, this.y * scale, this.radius * scale, 0, Math.PI * 2, false);
+        // this.ctx.arc(ctx_x * scale, ctx_y * scale, this.radius * scale, 0, Math.PI * 2, false);
+
         this.ctx.fillStyle = this.color;
         this.ctx.fill();
 
@@ -648,7 +935,6 @@ class FireBall extends ShiGameObject {
     start()
     {
         this.receive();
-        
     }
 
 
@@ -662,8 +948,8 @@ class FireBall extends ShiGameObject {
             let data = JSON.parse(e.data);
             let uuid = data.uuid;
 
-            console.log(data);
-            console.log("uuuuu === ", uuid, data.uuid, outer.uuid);
+            // console.log(data);
+            // console.log("uuuuu === ", uuid, data.uuid, outer.uuid);
 
             if(uuid === outer.uuid)return false;
 
@@ -672,7 +958,22 @@ class FireBall extends ShiGameObject {
             {
                 outer.receive_create_player(uuid, data.username, data.photo);
             }
-
+            else if(event === "move_to")
+            { 
+                outer.receive_move_to(uuid, data.tx, data.ty);
+            }
+            else if(event === "shoot_fireball")
+            {
+                outer.receive_shoot_fireball(data.uuid, data.tx, data.ty, data.ball_uuid);
+            }
+            else if(event === "attack")
+            {
+                outer.receive_attack(uuid, data.attackee_uuid, data.x, data.y, data.angle, data.damage, data.ball_uuid);
+            }
+            else if(event === "blink")
+            {
+                outer.receive_blink(uuid, data.tx, data.ty);
+            }
 
         };
 
@@ -711,6 +1012,125 @@ class FireBall extends ShiGameObject {
         this.playground.players.push(player);
 
     }
+    get_player(uuid)
+    {
+        let players = this.playground.players;
+        for(let i = 0; i < players.length; i ++)
+        {
+            let player = players[i];
+            if(player.uuid === uuid)
+                return player;
+
+        }
+        return null;
+    }
+
+    send_move_to(tx, ty)
+    {
+        let outer = this;
+        this.ws.send(JSON.stringify(
+            {
+                'event' : "move_to",
+                'uuid' : outer.uuid,
+                'tx' : tx,
+                'ty' : ty,
+
+            }
+        ));
+    }
+    receive_move_to(uuid, tx, ty)
+    {
+        let player = this.get_player(uuid)
+        if (player)
+        {
+            player.move_to(tx, ty);
+        }
+
+    }
+
+    
+
+    send_shoot_fireball(tx, ty, ball_uuid)
+    {
+        let outer = this;
+        this.ws.send(JSON.stringify(
+            {
+                'event' : "shoot_fireball",
+                'uuid' : outer.uuid,
+                'tx' : tx,
+                'ty' : ty,
+                'ball_uuid' : ball_uuid,
+            }
+        ));
+    }
+    receive_shoot_fireball(uuid, tx, ty, ball_uuid)
+    {
+        let player = this.get_player(uuid)
+        if (player)
+        {
+            // player.move_to(tx, ty);
+            let fireball = player.shoot_fireball(tx, ty);
+            fireball.uuid = ball_uuid;
+
+        }
+
+    }
+
+    send_attack(attackee_uuid, x, y, angle, damage, ball_uuid)
+    {
+        let outer = this;
+        this.ws.send(JSON.stringify(
+            {
+                'event' : "attack",
+                'uuid' : outer.uuid,
+                'attackee_uuid' : attackee_uuid,
+                'x' : x,
+                'y' : y,
+                'angle' : angle,
+                'damage' : damage,
+                'ball_uuid' : ball_uuid,
+            }
+        ));
+    }
+
+    receive_attack(uuid, attackee_uuid, x, y, angle, damage, ball_uuid)
+    {
+        let attacker = this.get_player(uuid);
+        let attackee = this.get_player(attackee_uuid);
+
+        if (attacker && attackee)
+        {
+            attackee.receive_attacked(x, y, angle, damage, ball_uuid, attacker);
+
+
+        }
+
+    }
+
+    send_blink(tx, ty)
+    {
+        let outer = this;
+        this.ws.send(JSON.stringify(
+            {
+                'event' : "blink",
+                'uuid' : outer.uuid,
+                'tx' : tx,
+                'ty' : ty,
+
+            }
+        ));
+    }
+
+    receive_blink(uuid, tx, ty)
+    {
+        let player = this.get_player(uuid);
+
+        if (player)
+        {
+            player.blink(tx, ty);
+        }
+
+    }
 
 }
 class ShiGamePlayground {
@@ -720,7 +1140,6 @@ class ShiGamePlayground {
         <div class="shi_game_playground">  </div>
         `)
         this.hide();
-    
         this.start();
     }
 
@@ -747,6 +1166,8 @@ class ShiGamePlayground {
         let unit = Math.min(this.width / 16, this.height/ 9);
         this.width = unit * 16;
         this.height = unit * 9;
+        this.map_width = 2 * unit * 16 / 2;
+        this.map_height = 2 * unit * 9 / 2;
         this.scale = this.height;
         //调用game_map
         if(this.game_map)this.game_map.resize();
@@ -764,26 +1185,38 @@ class ShiGamePlayground {
         this.resize();
         //生成game_map
         this.game_map = new GameMap(this);
+        //获取相对位置大小
+        this.resize();
+        this.mode = mode;
+
+        this.state = "waiting"; // ---> fighting ---> over
         this.players = [];
+
+        this.notice_board = new NoticeBoard(this);
+        this.player_count = 0;
+
         if(mode === "single mode")
         {
             this.players.push(new Player(this, this.width / 2 / this.scale, 0.5, 0.05, "white", 0.15, "me", this.root.settings.username, this.root.settings.photo, "single"));
-
+            // this.cx = this.players[0].x - 0.5 * this.width / 2;
+            // this.cy = this.players[0].y - 0.5 * this.height / 2;
+    
             for (let i = 0; i < 5; i++) {
                 this.players.push(new Player(this, this.width / 2 / this.scale, 0.5, 0.05, "black", 0.15, "robot", "", "", "single"));
+                
             }
 
         }
         else if(mode === "multi mode")
         {
             this.players.push(new Player(this, this.width / 2 / this.scale, 0.5, 0.05, "white", 0.15, "me", this.root.settings.username, this.root.settings.photo, "multi"));
+            // this.cx = this.players[0].x - 0.5 * this.width / 2 ;
+            // this.cy = this.players[0].y - 0.5 * this.height / 2 ;
             this.mps = new MultiPlayerSocket(this);//新建wbesocket链接对象
             this.mps.uuid = this.players[0].uuid;
             this.mps.ws.onopen = function()//链接创建成功后回调函数
             {
-                
                 outer.mps.send_create_player(outer.root.settings.username, outer.root.settings.photo);
-                
             }
 
             
@@ -843,11 +1276,30 @@ class ShiGamePlayground {
         </div>
 
         <br>
-        <div class="shi_game_settings_acwing">
-            <img width="30" src="https://app171.acapp.acwing.com.cn/static/image/settings/acwing_logo.png">
-            <br>
-            <div>一键登录</div>
+        <div class="shi_game_settings_qick_login">
+
+            <div class="shi_game_settings_qick_login_kong">
+
+                <div class="shi_game_settings_acwing">
+                    <img width="30" src="https://app171.acapp.acwing.com.cn/static/image/settings/acwing_logo.png">
+                    <br>
+                    <div>acwing</div>
+                    
+                </div>
+
+                <div class="shi_game_settings_kong">
+                    &nbsp;&nbsp;&nbsp;
+                </div>
+
+                <div class="shi_game_settings_github">
+                    <img width="30" src="https://cdn.acwing.com/media/article/image/2021/12/02/137551_c53a0bc853-META-INF_pluginIcon.png">
+                    <br>
+                    <div>git ee</div>
+                </div>  
+
+            </div>
         </div>
+        
 
     </div>
 
@@ -900,6 +1352,11 @@ class ShiGamePlayground {
             <br>
             <div>一键登录</div>
         </div>
+        <div class="shi_game_settings_github">
+            <img width="30" src="https://cdn.acwing.com/media/article/image/2021/12/02/137551_c53a0bc853-META-INF_pluginIcon.png">
+            <br>
+            <div>git ee</div>
+        </div>
 
     </div>
 
@@ -925,8 +1382,8 @@ class ShiGamePlayground {
 
         this.$register.hide();
 
-        this.$acwing_login= this.$settings.find(".shi_game_settings_acwing img");
-
+        this.$acwing_login = this.$settings.find(".shi_game_settings_acwing img");
+        this.$github_login = this.$settings.find(".shi_game_settings_github img");
 
         this.root.$shi_game.append(this.$settings);
 
@@ -940,8 +1397,14 @@ class ShiGamePlayground {
         this.add_listening_events_register();
         this.$acwing_login.click(function()
         {
+            console.log("yes");
             outer.acwing_login();
         });
+        this.$github_login.click(function(){
+            console.log("yes");
+            outer.github_login();
+        });
+
     }
     add_listening_events_login()
     {
@@ -987,6 +1450,25 @@ class ShiGamePlayground {
             }
         });
     }
+
+    // github一键登录
+    github_login() 
+    {
+        console.log("github_click login");
+        $.ajax({
+            url: "https://app171.acapp.acwing.com.cn/settings/github/apply_code/",
+            type: "GET",
+            success: function(resp) {
+                if (resp.result === "success") {
+                    console.log(resp.apply_code_url);
+                    window.location.replace(resp.apply_code_url);
+                }
+            }
+        });
+    }
+
+
+
 
     start() 
     {

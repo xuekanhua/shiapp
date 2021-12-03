@@ -9,7 +9,7 @@ class ShiGameObject { //基类，文件夹前缀加个a
         this.has_called_start = false; // 是否执行start函数
         this.timedelta = 0; // 当前帧距离上一帧的间隔
         this.uuid = this.create_uuid();
-        console.log(this.uuid);
+        // console.log(this.uuid);
     }
     create_uuid()
     {

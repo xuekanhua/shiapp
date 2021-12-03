@@ -4,12 +4,13 @@ import requests
 from django.contrib.auth.models import User
 from game.models.player.player import Player
 from django.contrib.auth import login
+from urllib.parse import quote
 from random import randint
 def receive_code(request):
 
 
     print("***********************************************")
-    print("web端登录")
+    print("web端acapp登录")
     print("***********************************************")
 
     data = request.GET
@@ -22,6 +23,7 @@ def receive_code(request):
         return redirect("index")
     cache.delete(state)
 
+    redirect_uri = quote("https://app171.acapp.acwing.com.cn/settings/github/receive_code")
 
     apply_access_token_url = "https://www.acwing.com/third_party/api/oauth2/access_token/"
     params = {
@@ -32,7 +34,7 @@ def receive_code(request):
 
     access_token_res = requests.get(apply_access_token_url, params=params).json()
 
-    print(access_token_res)
+    # print(access_token_res)
 
     access_token = access_token_res['access_token']
     openid = access_token_res['openid']

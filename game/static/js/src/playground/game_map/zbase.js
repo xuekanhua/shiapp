@@ -5,8 +5,13 @@ class GameMap extends ShiGameObject {
         this.playground = playground;
         this.$canvas = $(`<canvas></canvas>`);
         this.ctx = this.$canvas[0].getContext('2d');
-        this.ctx.canvas.width = this.playground.width;
-        this.ctx.canvas.height = this.playground.height;
+        this.width = this.playground.width;
+        this.height = this.playground.height;
+        this.map_width = this.playground.map_width;
+        this.map_height = this.playground.map_height;
+        this.ctx.canvas.width = this.map_width;
+        this.ctx.canvas.height = this.map_height;
+
         this.playground.$playground.append(this.$canvas);
 
     }
@@ -21,9 +26,8 @@ class GameMap extends ShiGameObject {
     //更新地图
     resize()
     {
-        this.ctx.canvas.width = this.playground.width;
-        this.ctx.canvas.height = this.playground.height;
-
+        this.ctx.canvas.width = this.playground.map_width;
+        this.ctx.canvas.height = this.playground.map_height;
         this.ctx.fillStyle = "rgba(176,224,230, 1)";
         this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
         // this.render();

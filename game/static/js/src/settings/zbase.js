@@ -45,11 +45,30 @@ class Settings {
         </div>
 
         <br>
-        <div class="shi_game_settings_acwing">
-            <img width="30" src="https://app171.acapp.acwing.com.cn/static/image/settings/acwing_logo.png">
-            <br>
-            <div>一键登录</div>
+        <div class="shi_game_settings_qick_login">
+
+            <div class="shi_game_settings_qick_login_kong">
+
+                <div class="shi_game_settings_acwing">
+                    <img width="30" src="https://app171.acapp.acwing.com.cn/static/image/settings/acwing_logo.png">
+                    <br>
+                    <div>acwing</div>
+                    
+                </div>
+
+                <div class="shi_game_settings_kong">
+                    &nbsp;&nbsp;&nbsp;
+                </div>
+
+                <div class="shi_game_settings_github">
+                    <img width="30" src="https://cdn.acwing.com/media/article/image/2021/12/02/137551_c53a0bc853-META-INF_pluginIcon.png">
+                    <br>
+                    <div>git ee</div>
+                </div>  
+
+            </div>
         </div>
+        
 
     </div>
 
@@ -102,6 +121,11 @@ class Settings {
             <br>
             <div>一键登录</div>
         </div>
+        <div class="shi_game_settings_github">
+            <img width="30" src="https://cdn.acwing.com/media/article/image/2021/12/02/137551_c53a0bc853-META-INF_pluginIcon.png">
+            <br>
+            <div>git ee</div>
+        </div>
 
     </div>
 
@@ -127,8 +151,8 @@ class Settings {
 
         this.$register.hide();
 
-        this.$acwing_login= this.$settings.find(".shi_game_settings_acwing img");
-
+        this.$acwing_login = this.$settings.find(".shi_game_settings_acwing img");
+        this.$github_login = this.$settings.find(".shi_game_settings_github img");
 
         this.root.$shi_game.append(this.$settings);
 
@@ -142,8 +166,14 @@ class Settings {
         this.add_listening_events_register();
         this.$acwing_login.click(function()
         {
+            console.log("yes");
             outer.acwing_login();
         });
+        this.$github_login.click(function(){
+            console.log("yes");
+            outer.github_login();
+        });
+
     }
     add_listening_events_login()
     {
@@ -189,6 +219,25 @@ class Settings {
             }
         });
     }
+
+    // github一键登录
+    github_login() 
+    {
+        console.log("github_click login");
+        $.ajax({
+            url: "https://app171.acapp.acwing.com.cn/settings/github/apply_code/",
+            type: "GET",
+            success: function(resp) {
+                if (resp.result === "success") {
+                    console.log(resp.apply_code_url);
+                    window.location.replace(resp.apply_code_url);
+                }
+            }
+        });
+    }
+
+
+
 
     start() 
     {

@@ -226,10 +226,64 @@
 .shi_game_settings_acwing
 {
     display: block;
+    float: left;
+    /* position: relative; */
+
+    /* left: 24%; */
     height: 7vh;
 }
+.shi_game_settings_github
+{
+    display: block;
+    float: left;
+    /* position: relative; */
+    /* left: 30%; */
+    height: 7vh;
+}
+.shi_game_settings_kong
+{
+    display: block;
+    float: left;
+    /* position: relative; */
+    /* left: 30%; */
+    height: 7vh;
+}
+.shi_game_settings_qick_login
+{
+    float: left;
+    display: block;
+    height: 10vh; 
+    margin:0 auto;
+    text-align: center;
 
+    /* position: relative;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);  */
+}
+
+.shi_game_settings_qick_login_kong 
+{
+    /* float: left; */
+    display: block;
+    height: 10vh; 
+    margin:0 auto;
+    position: relative;
+    top: 50%;
+    left: 120%;
+    /* transform: translate(-50%, -50%);   */
+}
 .shi_game_settings_acwing > img
+{
+    position: relative;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    cursor: pointer;
+    display: block;
+    
+}
+.shi_game_settings_github > img
 {
     position: relative;
     top: 50%;
@@ -254,6 +308,23 @@
     text-align: center;
     
 }
+.shi_game_settings_github > div
+{
+    /* font-size: 1.5vh;
+    color: white;
+    text-align: center;
+    cursor: pointer;
+    display: block;
+     */
+
+    padding-top: 10px;
+    color: white;
+    font-size: 1.5vh;
+    text-align: center;
+    
+}
+
+
 
 
 
