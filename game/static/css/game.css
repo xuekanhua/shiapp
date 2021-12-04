@@ -42,7 +42,8 @@
     height: 100%;
     user-select: none;
     background-color: rgba(176,223,230) ;
-    background-color: rgb(1, 2, 2) ;
+    background-color: rgb(176,223,230) ;
+    
 }
 .shi_game_playground > canvas
 {
