@@ -143,24 +143,112 @@ requestAnimationFrame(SHI_GAME_ANIMATION);
 
 
 
+class Grid extends ShiGameObject {
+    constructor(playground, ctx, i, j, l, stroke_color) {
+        super();
+        this.playground = playground;
+        this.ctx = ctx;
+        this.i = i;
+        this.j = j;
+        this.l = l;
+        this.stroke_color = "rgba(0, 0, 0, 0.01)";;
+        // this.fill_color = "rgba(210, 222, 238, 0.1)";
+        this.x = this.i * this.l;
+        this.y = this.j * this.l;
+    }
+
+    start() {}
+
+    update() {
+        this.render();
+    }
+
+    render() {
+        let scale = this.playground.scale;
+        let ctx_x = this.x - this.playground.cx, ctx_y = this.y - this.playground.cy;
+        let cx = ctx_x + this.l * 0.5, cy = ctx_y + this.l * 0.5; // grid的中心坐标
+        // 处于屏幕范围外，则不渲染
+        if (cx * scale < -0.2 * this.playground.width ||
+            cx * scale > 1.2 * this.playground.width ||
+            cy * scale < -0.2 * this.playground.height ||
+            cy * scale > 1.2 * this.playground.height) {
+            return;
+        }
+        this.ctx.save();
+        this.ctx.beginPath();
+        this.ctx.lineWidth = this.l * 0.03 * scale;
+        this.ctx.strokeStyle = this.stroke_color;
+        this.ctx.rect(ctx_x * scale, ctx_y * scale, this.l * scale, this.l * scale);
+        this.ctx.stroke();
+        this.ctx.restore();
+    }
+}
+class Wall extends ShiGameObject {
+    constructor(ctx, x, y, l, img_url) {
+        super();
+        this.ctx = ctx;
+        this.x = x;
+        this.y = y;
+        this.l = l;
+        this.ax = this.x * this.l;
+        this.ay = this.y * this.l;
+        this.img = new Image();
+        this.img.src = img_url;
+    }
+
+    start() {
+    }
+
+    update() {
+        this.render();
+    }
+
+    render() {
+        this.ctx.save();
+        this.ctx.beginPath();
+        this.ctx.lineWidth = this.l * 0.03;
+        this.ctx.strokeStyle = "rgba(0,0,0,0)";
+        this.ctx.rect(this.ax, this.ay, this.l, this.l);
+        this.ctx.stroke();
+        this.ctx.clip();
+        this.ctx.drawImage(this.img, this.ax, this.ay, this.l, this.l);
+        this.ctx.restore();
+    }
+}
+
+
 class GameMap extends ShiGameObject {
     constructor(playground) {
         super();
         this.playground = playground;
-        this.$canvas = $(`<canvas></canvas>`);
+        this.$canvas = $(`<canvas shi_game_playground_game_map></canvas>`);
         this.ctx = this.$canvas[0].getContext('2d');
         this.width = this.playground.width;
         this.height = this.playground.height;
-        this.map_width = this.playground.map_width;
-        this.map_height = this.playground.map_height;
-        this.ctx.canvas.width = this.map_width;
-        this.ctx.canvas.height = this.map_height;
+        this.ctx.canvas.width = this.width;
+        this.ctx.canvas.height = this.height;
 
         this.playground.$playground.append(this.$canvas);
 
     }
     start() {
+        this.generate_grid();
+        // this.generate_wall();
+        // this.has_called_start = true;
         
+    }
+    generate_grid() {
+        let width = this.playground.virtual_map_width;
+        let height = this.playground.virtual_map_height;
+        let l = height * 0.025; // 0.05 <==> 整个地图长宽划分为20份
+        let nx = Math.ceil(width / l);
+        let ny = Math.ceil(height / l);
+        this.grids = [];
+        for (let i = 0; i < ny; i ++ ) {
+            for (let j = 0; j < nx; j ++ ) {
+                this.grids.push(new Grid(this.playground, this.ctx, j, i, l, "black"));
+            }
+        }
     }
 
     update() {
@@ -185,7 +273,136 @@ class GameMap extends ShiGameObject {
         this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
     }
 
-}class NoticeBoard extends ShiGameObject {
+}
+
+
+class MiniMap extends ShiGameObject {
+    constructor(playground) {
+        super();
+        this.playground = playground;
+        this.$canvas = $(`<canvas class="mini-map"></canvas>`);
+        this.ctx = this.$canvas[0].getContext('2d');
+        this.bg_color = "rgba(0, 0, 0, 0.3)";
+        this.bright_color = "rgba(247, 232, 200, 0.7)";
+        this.players = this.playground.players; // TODO: 这里是浅拷贝?
+        this.pos_x = this.playground.width - this.playground.height * 0.3;
+        this.pos_y = this.playground.height * 0.7;
+        this.width = this.playground.height * 0.3;
+        this.height = this.width;
+        this.ctx.canvas.width = this.width;
+        this.ctx.canvas.height = this.height;
+        
+        this.playground.$playground.append(this.$canvas);
+        this.real_map_width = this.playground.virtual_map_width;
+
+        this.lock = false;
+        this.drag = false;
+    }
+
+    start() {
+        this.add_listening_events();
+    }
+
+    resize() {
+        this.pos_x = this.playground.width - this.playground.height * 0.3;
+        this.pos_y = this.playground.height * 0.7;
+        this.width = this.playground.height * 0.3;
+        this.height = this.width;
+        this.ctx.canvas.width = this.width;
+        this.ctx.canvas.height = this.height;
+
+        this.margin_right = (this.playground.$playground.width() - this.playground.width) / 2;
+        this.margin_bottom = (this.playground.$playground.height() - this.playground.height) / 2;
+        this.$canvas.css({
+            "position": "absolute",
+            "right": this.margin_right,
+            "bottom": this.margin_bottom
+        });
+    }
+
+    add_listening_events() {
+        let outer = this;
+        this.$canvas.on("contextmenu", function() {
+            return false;
+        });
+        this.$canvas.mousedown(function(e) {
+            const rect = outer.ctx.canvas.getBoundingClientRect();
+            let ctx_x = e.clientX - rect.left, ctx_y = e.clientY - rect.top; // 小地图上的位置
+            let tx = ctx_x / outer.width * outer.playground.virtual_map_width, ty = ctx_y / outer.height * outer.playground.virtual_map_height; // 大地图上的位置
+
+            if (e.which === 1) { // 左键，定位屏幕中心
+                outer.lock = true;
+                outer.drag = false;
+
+                outer.playground.focus_player = null;
+                outer.playground.re_calculate_cx_cy(tx, ty);
+                // (rect_x1, rect_y1)为小地图上框框的左上角的坐标（非相对坐标）
+                outer.rect_x1 = ctx_x - (outer.playground.width / 2 / outer.playground.scale / outer.playground.virtual_map_width) * outer.width;
+                outer.rect_y1 = ctx_y - (outer.playground.height / 2 / outer.playground.scale / outer.playground.virtual_map_height) * outer.height;
+            } else if (e.which === 3) { // 右键，移动过去
+                let player = outer.playground.players[0];
+                if (player.is_me) {
+                    player.move_to(tx, ty);
+                }
+            }
+        });
+
+        this.$canvas.mousemove(function(e) {
+            const rect = outer.ctx.canvas.getBoundingClientRect();
+            let ctx_x = e.clientX - rect.left, ctx_y = e.clientY - rect.top; // 小地图上的位置
+            let tx = ctx_x / outer.width * outer.playground.virtual_map_width, ty = ctx_y / outer.height * outer.playground.virtual_map_height; // 大地图上的位置
+            if (e.which === 1) {
+                if (outer.lock) {
+                    outer.drag = true;
+                    outer.playground.focus_player = null;
+                    outer.playground.re_calculate_cx_cy(tx, ty);
+                    outer.rect_x1 = ctx_x - (outer.playground.width / 2 / outer.playground.scale / outer.playground.virtual_map_width) * outer.width;
+                    outer.rect_y1 = ctx_y - (outer.playground.height / 2 / outer.playground.scale / outer.playground.virtual_map_height) * outer.height;
+                }
+            }
+        });
+
+        this.$canvas.mouseup(function(e) {
+            if (outer.lock) outer.lock = false;
+            
+        });
+    }
+
+    update() {
+        this.render();
+    }
+
+    render() {
+        let scale = this.playground.scale;
+        this.ctx.clearRect(0, 0, this.width, this.height); // 不加这行的话小地图背景会变黑
+        this.ctx.fillStyle = this.bg_color;
+        this.ctx.fillRect(0, 0, this.width, this.height);
+        if (this.playground.focus_player) {
+            this.rect_x1 = (this.playground.focus_player.x - this.playground.width / 2 / scale) / this.real_map_width * this.width;
+            this.rect_y1 = (this.playground.focus_player.y - this.playground.height / 2 / scale) / this.real_map_width * this.height;
+        }
+        let w = this.playground.width / scale / this.real_map_width * this.width;
+        let h = this.playground.height / scale / this.real_map_width * this.height;
+        this.ctx.save();
+        this.ctx.strokeStyle = this.bright_color;
+        this.ctx.setLineDash([15, 5]);
+        this.ctx.lineWidth = Math.ceil(3 * scale / 1080);
+        this.ctx.strokeRect(this.rect_x1, this.rect_y1, w, h);
+        this.ctx.restore();
+        for (let i = 0; i < this.players.length; i ++ ) {
+            let obj = this.players[i];
+            // 物体在真实地图上的位置 -> 物体在小地图上的位置
+            let x = obj.x / this.real_map_width * this.width, y = obj.y / this.real_map_width * this.height;
+            this.ctx.beginPath();
+            this.ctx.arc(x, y, this.width * 0.05, 0, Math.PI * 2, false); // false代表顺时针
+            if (obj.is_me) this.ctx.fillStyle = "green";
+            else this.ctx.fillStyle = "red";
+            this.ctx.fill();
+        }
+    }
+
+}
+class NoticeBoard extends ShiGameObject {
     constructor(playground) {
         super();
 
@@ -249,15 +466,19 @@ class Particle extends ShiGameObject {
     }
     render() {
         let scale = this.playground.scale;
-        // let ctx_x = this.x - this.playground.cx, ctx_y = this.y - this.playground.cy; // 把虚拟地图中的坐标换算成canvas中的坐标
-        // if (ctx_x < -0.1 * this.playground.width || ctx_x > 1.1 * this.playground.width || ctx_y < -0.1 * this.playground.height || ctx_y > 1.1 * this.playground.height) {
-            // return;
-        // }
+        
+        let ctx_x = this.x - this.playground.cx, ctx_y = this.y - this.playground.cy; // 把虚拟地图中的坐标换算成canvas中的坐标
+        if (ctx_x < -0.1 * this.playground.width / scale ||
+            ctx_x > 1.1 * this.playground.width / scale ||
+            ctx_y < -0.1 * this.playground.height / scale ||
+            ctx_y > 1.1 * this.playground.height / scale) {
+            return;
+        }
 
 
         this.ctx.beginPath();
-        this.ctx.arc(this.x * scale, this.y * scale, this.radius * scale, 0, Math.PI * 2, false);
-        // this.ctx.arc(ctx_x * scale, ctx_y * scale, this.radius * scale, 0, Math.PI * 2, false);
+        // this.ctx.arc(this.x * scale, this.y * scale, this.radius * scale, 0, Math.PI * 2, false);
+        this.ctx.arc(ctx_x * scale, ctx_y * scale, this.radius * scale, 0, Math.PI * 2, false);
         this.ctx.fillStyle = this.color;
         this.ctx.fill();
 
@@ -333,8 +554,12 @@ class Player extends ShiGameObject {
             this.add_listening_events();
         }
         else if(this.character === "robot"){
-            let tx = Math.random() * this.playground.width / this.playground.scale;
-            let ty = Math.random() * this.playground.height / this.playground.scale;
+            // let tx = Math.random() * this.playground.width / this.playground.scale;
+            // let ty = Math.random() * this.playground.height / this.playground.scale;
+            
+            let tx = Math.random() * this.playground.virtual_map_width;
+            let ty = Math.random() * this.playground.virtual_map_height;
+            
             this.move_to(tx, ty);
         }
     }
@@ -356,6 +581,9 @@ class Player extends ShiGameObject {
         this.playground.game_map.$canvas.on("contextmenu", function () {
             return false;
         });
+
+
+
         this.playground.game_map.$canvas.mousedown(function (e) {
             // console.log(outer.playground.state);
             if(outer.playground.state !== 'fighting') 
@@ -364,16 +592,16 @@ class Player extends ShiGameObject {
             }
 
             const rect = outer.ctx.canvas.getBoundingClientRect();
-            let ctx_x = e.clientX - rect.left + outer.playground.cx, ctx_y = e.clientY - rect.top + outer.playground.cy;
 
+            let tx = (e.clientX - rect.left) / outer.playground.scale + outer.playground.cx;
+            let ty = (e.clientY - rect.top) / outer.playground.scale + outer.playground.cy;
+            
             if (e.which === 3) {// 右键3， 左键1， 滚轮2
-                //解除闪现
-                let px = (m_x - rect.left) / outer.playground.scale, py = (m_y - rect.top) / outer.playground.scale;
-                let tx = px, ty = py;
-                if(outer.cur_skill === "fastmove")
-                {
-                    outer.cur_skill = null;
-                }
+                
+                // let px = (m_x - rect.left) / outer.playground.scale, py = (m_y - rect.top) / outer.playground.scale;
+                // let tx = px, ty = py;
+                if (tx < 0 || tx > outer.playground.virtual_map_width || ty < 0 || ty > outer.playground.virtual_map_height) return; // 不能向地图外移动
+
                 //点击地图的粒子效果
                 for (let i = 0; i < 10 + Math.random() * 10; i++) {
                     //相对位置 
@@ -383,11 +611,11 @@ class Player extends ShiGameObject {
                     let color = outer.color;
                     let speed = outer.speed * 0.15 * 5;
                     let move_length = outer.radius * Math.random() * 2;
-                    new Particle(outer.playground, px, py, radius, vx, vy, "green", speed, move_length);
+                    new Particle(outer.playground, tx, ty, radius, vx, vy, "green", speed, move_length);
                 }
                 // 相对位置 
 
-                outer.move_to(px, py);
+                outer.move_to(tx, ty);
 
                 if(outer.playground.mode === "multi mode")
                 {
@@ -400,7 +628,7 @@ class Player extends ShiGameObject {
             }
             else if (e.which === 1) {
                 
-                let tx = (m_x - rect.left) / outer.playground.scale, ty = (m_y - rect.top) / outer.playground.scale;
+                // let tx = (m_x - rect.left) / outer.playground.scale, ty = (m_y - rect.top) / outer.playground.scale;
                 if (outer.cur_skill === "fireball") {
                     // console.log(outer.cur_skill);   
                     //相对位置 
@@ -417,13 +645,13 @@ class Player extends ShiGameObject {
                         outer.playground.mps.send_shoot_fireball(tx, ty, fireball.uuid);
                     }
                 }
-                else if(outer.cur_skill === "fastmove")
-                {
-                    // console.log(outer.cur_skill);
-                    // outer.shoot_fireball((m_x - rect.left) / outer.playground.scale, (m_y - rect.top) / outer.playground.scale) / outer.playground.scale;
-                    //解除闪现
-                    outer.cur_skill = null;
-                }
+                // else if(outer.cur_skill === "fastmove")
+                // {
+                //     // console.log(outer.cur_skill);
+                //     // outer.shoot_fireball((m_x - rect.left) / outer.playground.scale, (m_y - rect.top) / outer.playground.scale) / outer.playground.scale;
+                //     //解除闪现
+                //     outer.cur_skill = null;
+                // }
                 else if(outer.cur_skill === "blink")
                 {
                     if(outer.blink_coldtime > outer.eps)
@@ -451,6 +679,13 @@ class Player extends ShiGameObject {
             }
 
             const rect = outer.ctx.canvas.getBoundingClientRect();
+
+            if (e.which === 32 || e.which === 49) { // 按1键或空格聚焦玩家
+                outer.playground.focus_player = outer;
+                outer.playground.re_calculate_cx_cy(outer.x, outer.y);
+                return false;
+            }
+
             if (e.which === 81) { // q 火球
                 if(outer.fireball_coldtime > outer.eps)
                 {
@@ -465,13 +700,13 @@ class Player extends ShiGameObject {
                 // outer.cur_skill = null;
                 return false;
             }
-            else if(e.which === 87)// w 闪现
-            {
-                outer.cur_skill = "fastmove";
-                //相对位置 
-                // outer.move_to((m_x - rect.left) / outer.playground.scale, (m_y - rect.top) / outer.playground.scale) / outer.playground.scale;
-                return false;
-            }
+            // else if(e.which === 87)// w 闪现
+            // {
+            //     // outer.cur_skill = "fastmove";
+            //     //相对位置 
+            //     // outer.move_to((m_x - rect.left) / outer.playground.scale, (m_y - rect.top) / outer.playground.scale) / outer.playground.scale;
+            //     return false;
+            // }
             else if(e.which === 69)// e 
             {
                 outer.cur_skill = "zisha";
@@ -586,13 +821,15 @@ class Player extends ShiGameObject {
         
         if(this.user_mode === "single")
         {
-            this.update_gameover();
+            this.update_single_gameover();
         }
         if(this.character === "me" && this.playground.state === "fighting")
         {
             this.update_coldtime();
 
         }
+        if (this.character === "me" && this.playground.focus_player === this) this.playground.re_calculate_cx_cy(this.x, this.y); // 如果是玩家，并且正在被聚焦，修改background的 (cx, cy)
+
 
 
         // if (this.character === "me") this.re_calculate_cx_cy();
@@ -630,24 +867,27 @@ class Player extends ShiGameObject {
                 this.move_length = 0;
                 this.vx = this.vy = 0;
                 if (this.character === "robot") {
-                    let tx = Math.random() * this.playground.width / this.playground.scale;
-                    let ty = Math.random() * this.playground.height / this.playground.scale;
+                    // let tx = Math.random() * this.playground.width / this.playground.scale;
+                    // let ty = Math.random() * this.playground.height / this.playground.scale;
+                    
+                    let tx = Math.random() * this.playground.virtual_map_width;
+                    let ty = Math.random() * this.playground.virtual_map_height;
                     this.move_to(tx, ty);
                 }
             }
             else {
                 //闪现技能
-                if(this.cur_skill === "fastmove")
-                {
-                    this.speed = 1000000 * this.speed_old;
-                }
+                // if(this.cur_skill === "fastmove")
+                // {
+                //     this.speed = 1000000 * this.speed_old;
+                // }
                 // else if (this.character === "me"){
                 //     //单机版开挂
                 //     this.speed = 2.5 * this.speed_old;
                 // }
-                else{
+                // else{
                     this.speed = 2 * this.speed_old;
-                }
+                // }
 
                 let moved = Math.min(this.move_length, this.speed * this.timedelta / 1000);
                 this.x += this.vx * moved;
@@ -661,7 +901,7 @@ class Player extends ShiGameObject {
         
 
     }
-    update_gameover()//游戏结束
+    update_single_gameover()//游戏结束
     {
         if(last_timestamp - game_over_time >= 500 && game_over === -1)
         {
@@ -669,17 +909,42 @@ class Player extends ShiGameObject {
             console.log(game_is_win);
             if(game_is_win === -1)
             {
-                window.alert("你输了");
+                
+                if(confirm("你输了,接下来是否返回主菜单？")){
+                    location.reload();
+                    return true;
+                }
+                else{
+                    return false;
+                }
                 if(this.playground.players.length === 1)
                     location.reload();
                 game_is_win = 0;
             }
             else
             {
-                if(game_is_win === 1)window.alert("恭喜胜利，接下来返回主菜单");
-                else window.alert("游戏结束，接下来返回主菜单");
+                if(game_is_win === 1){
+                    if(confirm("恭喜胜利，接下来是否返回主菜单？")){
+                        location.reload();
+                        return true;
+                    }
+                    else{
+                        return false;
+                    }
+                }
+                else
+                {
+                    if(confirm("游戏结束，接下来是否返回主菜单？")){
+                        location.reload();
+                        return true;
+                    }
+                    else{
+                        return false;
+                    }
+                }
+
                 // window.location.replace("https://app171.acapp.acwing.com.cn");
-                location.reload();
+                
             }
             
         }
@@ -733,18 +998,27 @@ class Player extends ShiGameObject {
     render()//更新画布 
     {
         let scale = this.playground.scale;
-        // let ctx_x = this.x - this.playground.cx, ctx_y = this.y - this.playground.cy; // 把虚拟地图中的坐标换算成canvas中的坐标
-        // if (ctx_x < -0.2 * this.playground.width || ctx_x > 1.2 * this.playground.width || ctx_y < -0.2 * this.playground.height || ctx_y > 1.2 * this.playground.height) {
-        //     return;
-        // }
-        // this.ctx.arc(ctx_x * scale, ctx_y * scale, this.radius * scale, 0, Math.PI * 2, false);
-        // this.ctx.drawImage(this.img, (ctx_x - this.radius) * scale, (ctx_y - this.radius) * scale, this.radius * 2 * scale, this.radius * 2 * scale); 
+
+        let ctx_x = this.x - this.playground.cx, ctx_y = this.y - this.playground.cy; // 把虚拟地图中的坐标换算成canvas中的坐标
+        if (ctx_x < -0.2 * this.playground.width / scale ||
+            ctx_x > 1.2 * this.playground.width / scale ||
+            ctx_y < -0.2 * this.playground.height / scale ||
+            ctx_y > 1.2 * this.playground.height / scale) {
+            return;
+        }
+
+
+
         this.ctx.save();
         this.ctx.beginPath();
-        this.ctx.arc(this.x * scale, this.y * scale, this.radius * scale, 0, Math.PI * 2, false);
+        this.ctx.arc(ctx_x * scale, ctx_y * scale, this.radius * scale, 0, Math.PI * 2, false);
+
+        // this.ctx.arc(this.x * scale, this.y * scale, this.radius * scale, 0, Math.PI * 2, false);
         this.ctx.stroke();
         this.ctx.clip();
-        this.ctx.drawImage(this.img, (this.x - this.radius) * scale, (this.y - this.radius) * scale, this.radius * 2 * scale, this.radius * 2 * scale); 
+        this.ctx.drawImage(this.img, (ctx_x - this.radius) * scale, (ctx_y - this.radius) * scale, this.radius * 2 * scale, this.radius * 2 * scale);
+
+        // this.ctx.drawImage(this.img, (this.x - this.radius) * scale, (this.y - this.radius) * scale, this.radius * 2 * scale, this.radius * 2 * scale); 
         this.ctx.restore();
         if(this.character === "me" && this.playground.state === "fighting")
         {
@@ -762,6 +1036,7 @@ class Player extends ShiGameObject {
         this.ctx.clip();
         this.ctx.drawImage(this.fireball_img, (fireball_x - fireball_r) * scale, (fireball_y - fireball_r) * scale, fireball_r * 2 * scale, fireball_r * 2 * scale); 
         this.ctx.restore();
+
 
         let blink_x = 1.62, blink_y = 0.9, blink_r = 0.04;
         this.ctx.save();
@@ -909,14 +1184,17 @@ class FireBall extends ShiGameObject {
     render() {
         let scale = this.playground.scale;
 
-        // let ctx_x = this.x - this.playground.cx, ctx_y = this.y - this.playground.cy; // 把虚拟地图中的坐标换算成canvas中的坐标
-        // if (ctx_x < -0.1 * this.playground.width || ctx_x > 1.1 * this.playground.width || ctx_y < -0.1 * this.playground.height || ctx_y > 1.1 * this.playground.height) {
-        //     return;
-        // }
+        let ctx_x = this.x - this.playground.cx, ctx_y = this.y - this.playground.cy; // 把虚拟地图中的坐标换算成canvas中的坐标
+        if (ctx_x < -0.1 * this.playground.width / scale ||
+            ctx_x > 1.1 * this.playground.width / scale ||
+            ctx_y < -0.1 * this.playground.height / scale ||
+            ctx_y > 1.1 * this.playground.height / scale) {
+            return;
+        }
 
         this.ctx.beginPath();
-        this.ctx.arc(this.x * scale, this.y * scale, this.radius * scale, 0, Math.PI * 2, false);
-        // this.ctx.arc(ctx_x * scale, ctx_y * scale, this.radius * scale, 0, Math.PI * 2, false);
+        // this.ctx.arc(this.x * scale, this.y * scale, this.radius * scale, 0, Math.PI * 2, false);
+        this.ctx.arc(ctx_x * scale, ctx_y * scale, this.radius * scale, 0, Math.PI * 2, false);
 
         this.ctx.fillStyle = this.color;
         this.ctx.fill();
@@ -1136,6 +1414,7 @@ class FireBall extends ShiGameObject {
 class ShiGamePlayground {
     constructor(root) {
         this.root = root;
+        this.focus_player = null;
         this.$playground = $(`
         <div class="shi_game_playground">  </div>
         `)
@@ -1170,21 +1449,34 @@ class ShiGamePlayground {
         this.map_height = 2 * unit * 9 / 2;
         this.scale = this.height;
         //调用game_map
-        if(this.game_map)this.game_map.resize();
+        if (this.game_map) this.game_map.resize();
+        // if (this.mini_map) this.mini_map.resize();
+    }
 
-
+    re_calculate_cx_cy(x, y) {
+        this.cx = x - 0.5 * this.width / this.scale;
+        this.cy = y - 0.5 * this.height/ this.scale;
     }
 
     show(mode) 
     {
         let outer = this;
-        // window.alert("------------------\n欢迎游玩\n------------------\n本游戏尚在开发阶段\nQ为火球,W为闪现,右键移动\n祝您游玩愉快");
         this.$playground.show();
         this.root.$shi_game.append(this.$playground);
+
         //获取相对位置大小
         this.resize();
+
+
+        // 虚拟地图大小改成相对大小
+        this.virtual_map_width = 3;
+        this.virtual_map_height = this.virtual_map_width; // 正方形地图，方便画格子
+
+
         //生成game_map
         this.game_map = new GameMap(this);
+
+
         //获取相对位置大小
         this.resize();
         this.mode = mode;
@@ -1198,8 +1490,10 @@ class ShiGamePlayground {
         if(mode === "single mode")
         {
             this.players.push(new Player(this, this.width / 2 / this.scale, 0.5, 0.05, "white", 0.15, "me", this.root.settings.username, this.root.settings.photo, "single"));
-            // this.cx = this.players[0].x - 0.5 * this.width / 2;
-            // this.cy = this.players[0].y - 0.5 * this.height / 2;
+            
+            // 根据玩家位置确定画布相对于虚拟地图的偏移量
+            this.re_calculate_cx_cy(this.players[0].x, this.players[0].y);
+            this.focus_player = this.players[0];
     
             for (let i = 0; i < 5; i++) {
                 this.players.push(new Player(this, this.width / 2 / this.scale, 0.5, 0.05, "black", 0.15, "robot", "", "", "single"));
@@ -1210,18 +1504,22 @@ class ShiGamePlayground {
         else if(mode === "multi mode")
         {
             this.players.push(new Player(this, this.width / 2 / this.scale, 0.5, 0.05, "white", 0.15, "me", this.root.settings.username, this.root.settings.photo, "multi"));
-            // this.cx = this.players[0].x - 0.5 * this.width / 2 ;
-            // this.cy = this.players[0].y - 0.5 * this.height / 2 ;
+            
+            // 根据玩家位置确定画布相对于虚拟地图的偏移量
+            this.re_calculate_cx_cy(this.players[0].x, this.players[0].y);
+            this.focus_player = this.players[0];
+
             this.mps = new MultiPlayerSocket(this);//新建wbesocket链接对象
             this.mps.uuid = this.players[0].uuid;
             this.mps.ws.onopen = function()//链接创建成功后回调函数
             {
                 outer.mps.send_create_player(outer.root.settings.username, outer.root.settings.photo);
             }
-
-            
-
         }
+
+        // 在地图和玩家都创建好后，创建小地图对象
+        // this.mini_map = new MiniMap(this, this.game_map);
+        // this.mini_map.resize();
 
 
     }

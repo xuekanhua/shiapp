@@ -324,6 +324,14 @@
     
 }
 
+.shi_game_playground_game_map
+{
+    position: relative;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
 
 
 
