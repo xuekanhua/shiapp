@@ -38,7 +38,7 @@ class ShiGamePlayground {
         this.scale = this.height;
         //调用game_map
         if (this.game_map) this.game_map.resize();
-        // if (this.mini_map) this.mini_map.resize();
+        if (this.mini_map) this.mini_map.resize();
     }
 
     re_calculate_cx_cy(x, y) {
@@ -106,8 +106,8 @@ class ShiGamePlayground {
         }
 
         // 在地图和玩家都创建好后，创建小地图对象
-        // this.mini_map = new MiniMap(this, this.game_map);
-        // this.mini_map.resize();
+        this.mini_map = new MiniMap(this, this.game_map);
+        this.mini_map.resize();
 
 
     }

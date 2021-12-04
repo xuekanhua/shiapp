@@ -52,17 +52,22 @@ class Player extends ShiGameObject {
             this.blink_img.src = "https://cdn.acwing.com/media/article/image/2021/12/02/1_daccabdc53-blink.png";
 
         }
+        else if(this.character === "robot")
+        {
+            this.fireball_coldtime = 3;
+
+        }
 
     }
 
 
     start() {
         this.playground.player_count ++;
-        this.playground.notice_board.write("已就绪：" + this.playground.player_count);
+        this.playground.notice_board.write("已就绪：" + this.playground.player_count + "/3    再等等嘛🥰");
         if(this.playground.player_count >= 3)
         {
             this.playground.state = "fighting";
-            this.playground.notice_board.write("Fighting");
+            this.playground.notice_board.write("Fighting  存活人数：" + this.playground.player_count + "   你要加油呀🥰");
         }
         if (this.character === "me") {
             this.add_listening_events();
@@ -255,7 +260,7 @@ class Player extends ShiGameObject {
         let color = "orange";
         let speed = 0.5;
         let move_length = 1;
-        let damage = 0.01 * 0.5;
+        let damage = 0.01 * 0.9;
 
         let fireball = new FireBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, damage);
         this.fireballs.push(fireball);
@@ -480,9 +485,15 @@ class Player extends ShiGameObject {
 
     on_destory()
     {
+        this.playground.player_count --;
+        if(this.playground.state !== "wating")
+        {
+            this.playground.notice_board.write("Fighting  存活人数：" + this.playground.player_count + "   你要加油呀🥰");
+        }
         if(this.character === "me")
         {
             this.playground.state = "over";
+            this.playground.notice_board.write("你好菜呀，😡");
         }
         for(let i = 0; i < this.playground.players.length; i ++)
         {

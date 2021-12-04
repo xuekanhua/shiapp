@@ -151,10 +151,12 @@ class Grid extends ShiGameObject {
         this.i = i;
         this.j = j;
         this.l = l;
-        this.stroke_color = "rgba(0, 0, 0, 0.01)";;
+        
         // this.fill_color = "rgba(210, 222, 238, 0.1)";
         this.x = this.i * this.l;
         this.y = this.j * this.l;
+        this.stroke_color = "rgba(0, 0, 0, 0.01)";
+        // if(this.x === 0)this.stroke_color = "rgba(0, 0, 0, 1)";
     }
 
     start() {}
@@ -178,40 +180,8 @@ class Grid extends ShiGameObject {
         this.ctx.beginPath();
         this.ctx.lineWidth = this.l * 0.03 * scale;
         this.ctx.strokeStyle = this.stroke_color;
-        this.ctx.rect(ctx_x * scale, ctx_y * scale, this.l * scale, this.l * scale);
+        this.ctx.rect(ctx_x * scale, ctx_y * scale, this.l * scale , this.l * scale);
         this.ctx.stroke();
-        this.ctx.restore();
-    }
-}
-class Wall extends ShiGameObject {
-    constructor(ctx, x, y, l, img_url) {
-        super();
-        this.ctx = ctx;
-        this.x = x;
-        this.y = y;
-        this.l = l;
-        this.ax = this.x * this.l;
-        this.ay = this.y * this.l;
-        this.img = new Image();
-        this.img.src = img_url;
-    }
-
-    start() {
-    }
-
-    update() {
-        this.render();
-    }
-
-    render() {
-        this.ctx.save();
-        this.ctx.beginPath();
-        this.ctx.lineWidth = this.l * 0.03;
-        this.ctx.strokeStyle = "rgba(0,0,0,0)";
-        this.ctx.rect(this.ax, this.ay, this.l, this.l);
-        this.ctx.stroke();
-        this.ctx.clip();
-        this.ctx.drawImage(this.img, this.ax, this.ay, this.l, this.l);
         this.ctx.restore();
     }
 }
@@ -280,11 +250,11 @@ class MiniMap extends ShiGameObject {
     constructor(playground) {
         super();
         this.playground = playground;
-        this.$canvas = $(`<canvas class="mini-map"></canvas>`);
+        this.$canvas = $(`<canvas class="mini_map"></canvas>`);
         this.ctx = this.$canvas[0].getContext('2d');
         this.bg_color = "rgba(0, 0, 0, 0.3)";
         this.bright_color = "rgba(247, 232, 200, 0.7)";
-        this.players = this.playground.players; // TODO: 这里是浅拷贝?
+        this.players = this.playground.players; 
         this.pos_x = this.playground.width - this.playground.height * 0.3;
         this.pos_y = this.playground.height * 0.7;
         this.width = this.playground.height * 0.3;
@@ -312,11 +282,11 @@ class MiniMap extends ShiGameObject {
         this.ctx.canvas.height = this.height;
 
         this.margin_right = (this.playground.$playground.width() - this.playground.width) / 2;
-        this.margin_bottom = (this.playground.$playground.height() - this.playground.height) / 2;
+        this.margin_top = (this.playground.$playground.height() - this.playground.height) / 2;
         this.$canvas.css({
             "position": "absolute",
             "right": this.margin_right,
-            "bottom": this.margin_bottom
+            "top": this.margin_top + 30,
         });
     }
 
@@ -394,8 +364,8 @@ class MiniMap extends ShiGameObject {
             // 物体在真实地图上的位置 -> 物体在小地图上的位置
             let x = obj.x / this.real_map_width * this.width, y = obj.y / this.real_map_width * this.height;
             this.ctx.beginPath();
-            this.ctx.arc(x, y, this.width * 0.05, 0, Math.PI * 2, false); // false代表顺时针
-            if (obj.is_me) this.ctx.fillStyle = "green";
+            this.ctx.arc(x, y, this.width * 0.04, 0, Math.PI * 2, false); // false代表顺时针
+            if (obj.character === "me") this.ctx.fillStyle = "green";
             else this.ctx.fillStyle = "red";
             this.ctx.fill();
         }
@@ -538,17 +508,22 @@ class Player extends ShiGameObject {
             this.blink_img.src = "https://cdn.acwing.com/media/article/image/2021/12/02/1_daccabdc53-blink.png";
 
         }
+        else if(this.character === "robot")
+        {
+            this.fireball_coldtime = 3;
+
+        }
 
     }
 
 
     start() {
         this.playground.player_count ++;
-        this.playground.notice_board.write("已就绪：" + this.playground.player_count);
+        this.playground.notice_board.write("已就绪：" + this.playground.player_count + "/3    再等等嘛🥰");
         if(this.playground.player_count >= 3)
         {
             this.playground.state = "fighting";
-            this.playground.notice_board.write("Fighting");
+            this.playground.notice_board.write("Fighting  存活人数：" + this.playground.player_count + "   你要加油呀🥰");
         }
         if (this.character === "me") {
             this.add_listening_events();
@@ -741,7 +716,7 @@ class Player extends ShiGameObject {
         let color = "orange";
         let speed = 0.5;
         let move_length = 1;
-        let damage = 0.01 * 0.5;
+        let damage = 0.01 * 0.9;
 
         let fireball = new FireBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, damage);
         this.fireballs.push(fireball);
@@ -966,9 +941,15 @@ class Player extends ShiGameObject {
 
     on_destory()
     {
+        this.playground.player_count --;
+        if(this.playground.state !== "wating")
+        {
+            this.playground.notice_board.write("Fighting  存活人数：" + this.playground.player_count + "   你要加油呀🥰");
+        }
         if(this.character === "me")
         {
             this.playground.state = "over";
+            this.playground.notice_board.write("你好菜呀，😡");
         }
         for(let i = 0; i < this.playground.players.length; i ++)
         {
@@ -1450,7 +1431,7 @@ class ShiGamePlayground {
         this.scale = this.height;
         //调用game_map
         if (this.game_map) this.game_map.resize();
-        // if (this.mini_map) this.mini_map.resize();
+        if (this.mini_map) this.mini_map.resize();
     }
 
     re_calculate_cx_cy(x, y) {
@@ -1518,8 +1499,8 @@ class ShiGamePlayground {
         }
 
         // 在地图和玩家都创建好后，创建小地图对象
-        // this.mini_map = new MiniMap(this, this.game_map);
-        // this.mini_map.resize();
+        this.mini_map = new MiniMap(this, this.game_map);
+        this.mini_map.resize();
 
 
     }

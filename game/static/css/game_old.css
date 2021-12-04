@@ -1,0 +1,281 @@
+*,
+*::before,
+*::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.ac-game-settings {
+    width: 100%;
+    height: 100%;
+    background-image: url("/static/image/menu/background.gif");
+    background-size: 100% 100%;
+    user-select: none;
+}
+
+.ac-game-settings-login {
+    height: 41vh;
+    width: 20vw;
+    position: relative;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(0, 0, 0, 0.7);
+    border-radius: 5px;
+}
+
+.ac-game-settings-item {
+    width: 100%;
+    height: 100%;
+}
+
+.ac-game-settings-item > input {
+    position: relative;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    line-height: 3vh;
+}
+
+.ac-game-settings-title {
+    color: white;
+    font-size: 3vh;
+    text-align: center;
+    padding-top: 2vh;
+    margin-bottom: 2vh;
+}
+
+.ac-game-settings-username {
+    display: block;
+    height: 7vh;
+}
+
+.ac-game-settings-password {
+    display: block;
+    height: 7vh;
+}
+
+.ac-game-settings-submit {
+    display: block;
+    height: 7vh;
+}
+
+.ac-game-settings-item > button {
+    color: white;
+    width: 90%;
+    line-height: 3vh;
+    position: relative;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #4CAF50;
+    border-radius: 5px;
+}
+
+.ac-game-settings-error-message {
+    color: red;
+    display: inline;
+    padding-left: 1vw;
+    font-size: .8vh;
+    float: left;
+}
+
+.ac-game-settings-option {
+    color: white;
+    font-size: 2vh;
+    display: inline;
+    float: right;
+    padding-right: 1vw;
+    cursor: pointer;
+}
+
+.ac-game-settings-acwing { /* 涓€閿櫥褰� */
+    display: block;
+    text-align: center;
+    height: 7vh;
+}
+
+.login-row::after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+
+.ac-game-settings-third-party-login {
+    cursor: pointer;
+    display: inline-block;
+}
+
+
+.ac-game-settings-third-party-login-text {
+    color: white;
+    text-align: center;
+    font-size: 1.75vh;
+}
+
+.ac-game-settings-register {
+    height: 49vh;
+    width: 20vw;
+    position: relative;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(0, 0, 0, 0.7);
+    border-radius: 5px;
+}
+
+.ac-game-menu {
+    width: 100%;
+    height: 100%;
+    background-image: url("/static/image/menu/background.gif");
+    background-size: 100% 100%;
+    user-select: none;
+}
+
+.ac-game-menu-field {
+    width: 20vw;
+    position: relative;
+    top: 40%;
+    left: 20%;
+}
+
+.ac-game-menu-field-item {
+    color: white;
+    height: 6vh;
+    width: 18vw;
+    font-size: 4vh;
+    font-style: italic;
+    text-align: center;
+    background-color: rgba(39,21,28, 0.6);
+    border-radius: 10px;
+    letter-spacing: 0.5vw;
+    cursor: pointer;
+}
+
+.ac-game-menu-field-item:hover {
+    transform: scale(1.2);
+    transition: .2s;
+}
+
+.ac-game-playground {
+    width: 100%;
+    height: 100%;
+    user-select: none;
+    overflow: hidden;
+}
+
+.ac-game-choose-mode {
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    user-select: none;
+    background-size: 100% 100%;
+    background-color: rgba(176,224,230);
+}
+
+.ac-game-choose-mode-top {
+    position: relative;
+    width: 100%;
+    height: 30%;
+}
+
+.ac-game-choose-mode-middle {
+    position: relative;
+    width: 100%;
+    height: 30%;
+}
+
+.ac-game-choose-mode-bottom {
+    position: relative;
+    width: 100%;
+    height: 30%;
+}
+
+.ac-game-choose-mode-mode-desc {
+    color: white;
+    width: 70%;
+    text-align: center;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 3.5vw;
+}
+
+.ac-game-choose-mode-change-left{
+    border-top: 4vw solid transparent;
+    border-right: 4vw solid Silver  ;
+    border-bottom: 4vw solid transparent;
+    position: absolute;
+    top: 50%;
+    left: 40%;
+    transform: translate(-50%, -50%);
+    letter-spacing: 0.5vw;
+}
+
+.ac-game-choose-mode-change-left:hover{
+    transform: translate(-50%, -50%) scale(1.2);
+    transition: 100ms;
+}
+
+.ac-game-choose-mode-change-right{
+    border-top: 4vw solid transparent;
+    border-left: 4vw solid Silver   ;
+    border-bottom: 4vw solid transparent;
+    position: absolute;
+    top: 50%;
+    left: 60%;
+    transform: translate(-50%, -50%);
+    letter-spacing: 0.5vw;
+    cursor: pointer;
+    display:inline-block;
+}
+
+.ac-game-choose-mode-change-right:hover{
+    transform: translate(-50%, -50%) scale(1.2);
+    transition: 100ms;
+}
+
+.ac-game-choose-mode-submit {
+    width: 10vw;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 3.5vw;
+    font-style: italic;
+    text-align: center;
+    background-color: rgba(144,238,144,0.6);
+    border-radius: 10px;
+    letter-spacing: 0.5vw;
+    cursor: pointer;
+}
+
+.ac-game-choose-mode-submit:hover {
+    transform: translate(-50%, -50%) scale(1.2);
+    transition: 100ms;
+}
+
+.ac-game-choose-mode-mode-name{
+    width: 10vw;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 3vw;
+    font-style: italic;
+    text-align: center;
+    letter-spacing: 0.5vw;
+}
+
+.ac-game-playground-game-map {
+    position: relative;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
