@@ -942,14 +942,18 @@ class Player extends ShiGameObject {
     on_destory()
     {
         this.playground.player_count --;
-        if(this.playground.state !== "wating")
+        if(this.playground.state === "fighting")
         {
             this.playground.notice_board.write("Fighting  存活人数：" + this.playground.player_count + "   你要加油呀🥰");
+            if(this.playground.player_count === 1)
+            {
+                this.playground.notice_board.write("🎉🎉✨✨恭喜你取得最终胜利✨✨🎉🎉");
+            }
         }
         if(this.character === "me")
         {
             this.playground.state = "over";
-            this.playground.notice_board.write("你好菜呀，😡");
+            this.playground.notice_board.write("🐽铸币吧，好菜呀🐽");
         }
         for(let i = 0; i < this.playground.players.length; i ++)
         {
