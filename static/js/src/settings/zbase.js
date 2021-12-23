@@ -45,27 +45,30 @@ class Settings {
         </div>
 
         <br>
-        <div class="shi_game_settings_qick_login">
+        <br>
+        <br>
 
-            <div class="shi_game_settings_qick_login_kong">
-
-                <div class="shi_game_settings_acwing">
-                    <img width="30" src="https://app171.acapp.acwing.com.cn/static/image/settings/acwing_logo.png">
-                    <br>
-                    <div>acwing</div>
-                    
+        <div class="shi_game_settings_quick_login">
+            <div class="shi_game_settings_quick_acwing">
+                <img width="30" src="/static/image/settings/acwing_logo.png">
+                <br>
+                <div>
+                    AcWing登录
                 </div>
-
-                <div class="shi_game_settings_kong">
-                    &nbsp;&nbsp;&nbsp;
+            </div>
+            <div class="shi_game_settings_quick_gitee">
+                <img width="30" src="https://cdn.acwing.com/media/article/image/2021/12/02/137551_c53a0bc853-META-INF_pluginIcon.png">
+                <br>
+                <div>
+                    Gitee登录
                 </div>
-
-                <div class="shi_game_settings_github">
-                    <img width="30" src="https://cdn.acwing.com/media/article/image/2021/12/02/137551_c53a0bc853-META-INF_pluginIcon.png">
-                    <br>
-                    <div>git ee</div>
-                </div>  
-
+            </div>
+            <div class="shi_game_settings_quick_github">
+                <img width="30" src="https://cdn.jsdelivr.net/gh/zhangying458/CDN/nav/chapter/axvol-1j3rc.webp">
+                <br>
+                <div>
+                    GitHub登录
+                </div>
             </div>
         </div>
         
@@ -116,15 +119,28 @@ class Settings {
         </div>
 
         <br>
-        <div class="shi_game_settings_acwing">
-            <img width="30" src="https://app171.acapp.acwing.com.cn/static/image/settings/acwing_logo.png">
-            <br>
-            <div>一键登录</div>
-        </div>
-        <div class="shi_game_settings_github">
-            <img width="30" src="https://cdn.acwing.com/media/article/image/2021/12/02/137551_c53a0bc853-META-INF_pluginIcon.png">
-            <br>
-            <div>git ee</div>
+        <div class="shi_game_settings_quick_login">
+            <div class="shi_game_settings_quick_acwing">
+                <img width="30" src="/static/image/settings/acwing_logo.png">
+                <br>
+                <div>
+                    AcWing登录
+                </div>
+            </div>
+            <div class="shi_game_settings_quick_gitee">
+                <img width="30" src="https://cdn.acwing.com/media/article/image/2021/12/02/137551_c53a0bc853-META-INF_pluginIcon.png">
+                <br>
+                <div>
+                    Gitee登录
+                </div>
+            </div>
+            <div class="shi_game_settings_quick_github">
+                <img width="30" src="https://cdn.jsdelivr.net/gh/zhangying458/CDN/nav/chapter/axvol-1j3rc.webp">
+                <br>
+                <div>
+                    GitHub登录
+                </div>
+            </div>
         </div>
 
     </div>
@@ -151,8 +167,10 @@ class Settings {
 
         this.$register.hide();
 
-        this.$acwing_login = this.$settings.find(".shi_game_settings_acwing img");
-        this.$github_login = this.$settings.find(".shi_game_settings_github img");
+        this.$acwing_login = this.$settings.find(".shi_game_settings_quick_acwing img");
+        this.$gitee_login = this.$settings.find(".shi_game_settings_quick_gitee img");
+        this.$github_login = this.$settings.find(".shi_game_settings_quick_github img");
+
 
         this.root.$shi_game.append(this.$settings);
 
@@ -168,6 +186,10 @@ class Settings {
         {
             console.log("yes");
             outer.acwing_login();
+        });
+        this.$gitee_login.click(function(){
+            console.log("yes");
+            outer.gitee_login();
         });
         this.$github_login.click(function(){
             console.log("yes");
@@ -220,17 +242,32 @@ class Settings {
         });
     }
 
-    // github一键登录
+    // gitee一键登录
+    gitee_login() 
+    {
+        console.log("gitee_click login");
+        $.ajax({
+            url: "https://app171.acapp.acwing.com.cn/settings/gitee/apply_code/",
+            type: "GET",
+            success: function(resp) {
+                if (resp.result === "success") {
+                    console.log(resp.apply_code_url);
+                    window.location.replace(resp.apply_code_url);
+                }
+            }
+        });
+    }
+
     github_login() 
     {
-        console.log("github_click login");
+        console.log("gitee_click login");
         $.ajax({
             url: "https://app171.acapp.acwing.com.cn/settings/github/apply_code/",
             type: "GET",
             success: function(resp) {
                 if (resp.result === "success") {
                     console.log(resp.apply_code_url);
-                    window.location.replace(resp.apply_code_url);
+                    // window.location.replace(resp.apply_code_url);
                 }
             }
         });

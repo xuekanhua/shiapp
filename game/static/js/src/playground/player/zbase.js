@@ -191,7 +191,7 @@ class Player extends ShiGameObject {
 
         });
 
-        $(window).keydown(function (e) {
+        this.playground.game_map.$canvas.keydown(function (e) {
             if(outer.playground.state !== 'fighting') 
             {
                 return true;
@@ -557,7 +557,7 @@ class Player extends ShiGameObject {
     render_skill_clodtime()
     {
         let scale = this.playground.scale;
-        let fireball_x = 1.5, fireball_y = 0.9, fireball_r = 0.04;
+        let fireball_x = 0.5 + 0.3, fireball_y = 0.9, fireball_r = 0.04;
         this.ctx.save();
         this.ctx.beginPath();
         this.ctx.arc(fireball_x * scale, fireball_y * scale, fireball_r * scale, 0, Math.PI * 2, false);
@@ -567,7 +567,7 @@ class Player extends ShiGameObject {
         this.ctx.restore();
 
 
-        let blink_x = 1.62, blink_y = 0.9, blink_r = 0.04;
+        let blink_x = 0.62 + 0.3, blink_y = 0.9, blink_r = 0.04;
         this.ctx.save();
         this.ctx.beginPath();
         this.ctx.arc(blink_x * scale, blink_y * scale, blink_r * scale, 0, Math.PI * 2, false);

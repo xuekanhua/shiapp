@@ -1,6 +1,6 @@
 
 class Grid extends ShiGameObject {
-    constructor(playground, ctx, i, j, l, stroke_color) {
+    constructor(playground, ctx, i, j, l, boder) {
         super();
         this.playground = playground;
         this.ctx = ctx;
@@ -8,10 +8,11 @@ class Grid extends ShiGameObject {
         this.j = j;
         this.l = l;
         
-        // this.fill_color = "rgba(210, 222, 238, 0.1)";
+        this.boder = boder;
         this.x = this.i * this.l;
         this.y = this.j * this.l;
         this.stroke_color = "rgba(0, 0, 0, 0.01)";
+        if (this.boder === false)this.stroke_color = "black";
         // if(this.x === 0)this.stroke_color = "rgba(0, 0, 0, 1)";
     }
 
@@ -26,17 +27,18 @@ class Grid extends ShiGameObject {
         let ctx_x = this.x - this.playground.cx, ctx_y = this.y - this.playground.cy;
         let cx = ctx_x + this.l * 0.5, cy = ctx_y + this.l * 0.5; // grid的中心坐标
         // 处于屏幕范围外，则不渲染
-        if (cx * scale < -0.2 * this.playground.width ||
+        if (this.boder === true && (cx * scale < -0.2 * this.playground.width ||
             cx * scale > 1.2 * this.playground.width ||
             cy * scale < -0.2 * this.playground.height ||
-            cy * scale > 1.2 * this.playground.height) {
+            cy * scale > 1.2 * this.playground.height)) {
             return;
         }
         this.ctx.save();
         this.ctx.beginPath();
         this.ctx.lineWidth = this.l * 0.03 * scale;
+        if(this.boder === false)this.ctx.lineWidth = this.l * 0.03 * scale * 0.02;
         this.ctx.strokeStyle = this.stroke_color;
-        this.ctx.rect(ctx_x * scale, ctx_y * scale, this.l * scale , this.l * scale);
+        this.ctx.rect(ctx_x * scale, ctx_y * scale, this.l * scale, this.l * scale);
         this.ctx.stroke();
         this.ctx.restore();
     }
@@ -47,7 +49,7 @@ class GameMap extends ShiGameObject {
     constructor(playground) {
         super();
         this.playground = playground;
-        this.$canvas = $(`<canvas shi_game_playground_game_map></canvas>`);
+        this.$canvas = $(`<canvas tabindex=0 class="shi_game_playground_game_map"></canvas>`);
         this.ctx = this.$canvas[0].getContext('2d');
         this.width = this.playground.width;
         this.height = this.playground.height;
@@ -58,6 +60,7 @@ class GameMap extends ShiGameObject {
 
     }
     start() {
+        this.$canvas.focus();
         this.generate_grid();
         // this.generate_wall();
         // this.has_called_start = true;
@@ -66,13 +69,22 @@ class GameMap extends ShiGameObject {
     generate_grid() {
         let width = this.playground.virtual_map_width;
         let height = this.playground.virtual_map_height;
-        let l = height * 0.025; // 0.05 <==> 整个地图长宽划分为20份
+
+        let l = height; // 0.05 <==> 整个地图长宽划分为20份
         let nx = Math.ceil(width / l);
         let ny = Math.ceil(height / l);
         this.grids = [];
         for (let i = 0; i < ny; i ++ ) {
             for (let j = 0; j < nx; j ++ ) {
-                this.grids.push(new Grid(this.playground, this.ctx, j, i, l, "black"));
+                this.grids.push(new Grid(this.playground, this.ctx, j, i, l, false));
+            }
+        }
+        l = height * 0.025; // 0.05 <==> 整个地图长宽划分为20份
+        nx = Math.ceil(width / l);
+        ny = Math.ceil(height / l);
+        for (let i = 0; i < ny; i ++ ) {
+            for (let j = 0; j < nx; j ++ ) {
+                this.grids.push(new Grid(this.playground, this.ctx, j, i, l, true));
             }
         }
     }
@@ -87,6 +99,8 @@ class GameMap extends ShiGameObject {
         this.ctx.canvas.width = this.playground.map_width;
         this.ctx.canvas.height = this.playground.map_height;
         this.ctx.fillStyle = "rgba(176,224,230, 1)";
+        // this.ctx.fillStyle = "rgba(176,224,230, 0)";
+
         this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
         // this.render();
 
@@ -96,6 +110,8 @@ class GameMap extends ShiGameObject {
     {
         // this.ctx.fillStyle = "rgba(53, 55, 75, 0.3)";
         this.ctx.fillStyle = "rgba(176,224,230, 0.6)";
+        // this.ctx.fillStyle = "rgba(176,224,230, 0)s";
+
         this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
     }
 
@@ -106,11 +122,11 @@ class MiniMap extends ShiGameObject {
     constructor(playground) {
         super();
         this.playground = playground;
-        this.$canvas = $(`<canvas class="mini_map"></canvas>`);
+        this.$canvas = $(`<canvas class="mini-map"></canvas>`);
         this.ctx = this.$canvas[0].getContext('2d');
         this.bg_color = "rgba(0, 0, 0, 0.3)";
         this.bright_color = "rgba(247, 232, 200, 0.7)";
-        this.players = this.playground.players; 
+        this.players = this.playground.players; // TODO: 这里是浅拷贝?
         this.pos_x = this.playground.width - this.playground.height * 0.3;
         this.pos_y = this.playground.height * 0.7;
         this.width = this.playground.height * 0.3;
@@ -123,6 +139,7 @@ class MiniMap extends ShiGameObject {
 
         this.lock = false;
         this.drag = false;
+
     }
 
     start() {
@@ -138,12 +155,13 @@ class MiniMap extends ShiGameObject {
         this.ctx.canvas.height = this.height;
 
         this.margin_right = (this.playground.$playground.width() - this.playground.width) / 2;
-        this.margin_top = (this.playground.$playground.height() - this.playground.height) / 2;
+        this.margin_bottom = (this.playground.$playground.height() - this.playground.height) / 2;
         this.$canvas.css({
             "position": "absolute",
             "right": this.margin_right,
-            "top": this.margin_top + 30,
+            "bottom": this.margin_bottom,
         });
+
     }
 
     add_listening_events() {
@@ -215,6 +233,7 @@ class MiniMap extends ShiGameObject {
         this.ctx.lineWidth = Math.ceil(3 * scale / 1080);
         this.ctx.strokeRect(this.rect_x1, this.rect_y1, w, h);
         this.ctx.restore();
+        
         for (let i = 0; i < this.players.length; i ++ ) {
             let obj = this.players[i];
             // 物体在真实地图上的位置 -> 物体在小地图上的位置

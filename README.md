@@ -1,2 +1,1 @@
-### django 初识
-#### vscode 实现ssh远程开发
+### django 课程学习

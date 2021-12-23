@@ -144,7 +144,7 @@ requestAnimationFrame(SHI_GAME_ANIMATION);
 
 
 class Grid extends ShiGameObject {
-    constructor(playground, ctx, i, j, l, stroke_color) {
+    constructor(playground, ctx, i, j, l, boder) {
         super();
         this.playground = playground;
         this.ctx = ctx;
@@ -152,10 +152,11 @@ class Grid extends ShiGameObject {
         this.j = j;
         this.l = l;
         
-        // this.fill_color = "rgba(210, 222, 238, 0.1)";
+        this.boder = boder;
         this.x = this.i * this.l;
         this.y = this.j * this.l;
         this.stroke_color = "rgba(0, 0, 0, 0.01)";
+        if (this.boder === false)this.stroke_color = "black";
         // if(this.x === 0)this.stroke_color = "rgba(0, 0, 0, 1)";
     }
 
@@ -170,17 +171,18 @@ class Grid extends ShiGameObject {
         let ctx_x = this.x - this.playground.cx, ctx_y = this.y - this.playground.cy;
         let cx = ctx_x + this.l * 0.5, cy = ctx_y + this.l * 0.5; // grid的中心坐标
         // 处于屏幕范围外，则不渲染
-        if (cx * scale < -0.2 * this.playground.width ||
+        if (this.boder === true && (cx * scale < -0.2 * this.playground.width ||
             cx * scale > 1.2 * this.playground.width ||
             cy * scale < -0.2 * this.playground.height ||
-            cy * scale > 1.2 * this.playground.height) {
+            cy * scale > 1.2 * this.playground.height)) {
             return;
         }
         this.ctx.save();
         this.ctx.beginPath();
         this.ctx.lineWidth = this.l * 0.03 * scale;
+        if(this.boder === false)this.ctx.lineWidth = this.l * 0.03 * scale * 0.02;
         this.ctx.strokeStyle = this.stroke_color;
-        this.ctx.rect(ctx_x * scale, ctx_y * scale, this.l * scale , this.l * scale);
+        this.ctx.rect(ctx_x * scale, ctx_y * scale, this.l * scale, this.l * scale);
         this.ctx.stroke();
         this.ctx.restore();
     }
@@ -191,7 +193,7 @@ class GameMap extends ShiGameObject {
     constructor(playground) {
         super();
         this.playground = playground;
-        this.$canvas = $(`<canvas shi_game_playground_game_map></canvas>`);
+        this.$canvas = $(`<canvas tabindex=0 class="shi_game_playground_game_map"></canvas>`);
         this.ctx = this.$canvas[0].getContext('2d');
         this.width = this.playground.width;
         this.height = this.playground.height;
@@ -202,6 +204,7 @@ class GameMap extends ShiGameObject {
 
     }
     start() {
+        this.$canvas.focus();
         this.generate_grid();
         // this.generate_wall();
         // this.has_called_start = true;
@@ -210,13 +213,22 @@ class GameMap extends ShiGameObject {
     generate_grid() {
         let width = this.playground.virtual_map_width;
         let height = this.playground.virtual_map_height;
-        let l = height * 0.025; // 0.05 <==> 整个地图长宽划分为20份
+
+        let l = height; // 0.05 <==> 整个地图长宽划分为20份
         let nx = Math.ceil(width / l);
         let ny = Math.ceil(height / l);
         this.grids = [];
         for (let i = 0; i < ny; i ++ ) {
             for (let j = 0; j < nx; j ++ ) {
-                this.grids.push(new Grid(this.playground, this.ctx, j, i, l, "black"));
+                this.grids.push(new Grid(this.playground, this.ctx, j, i, l, false));
+            }
+        }
+        l = height * 0.025; // 0.05 <==> 整个地图长宽划分为20份
+        nx = Math.ceil(width / l);
+        ny = Math.ceil(height / l);
+        for (let i = 0; i < ny; i ++ ) {
+            for (let j = 0; j < nx; j ++ ) {
+                this.grids.push(new Grid(this.playground, this.ctx, j, i, l, true));
             }
         }
     }
@@ -231,6 +243,8 @@ class GameMap extends ShiGameObject {
         this.ctx.canvas.width = this.playground.map_width;
         this.ctx.canvas.height = this.playground.map_height;
         this.ctx.fillStyle = "rgba(176,224,230, 1)";
+        // this.ctx.fillStyle = "rgba(176,224,230, 0)";
+
         this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
         // this.render();
 
@@ -240,6 +254,8 @@ class GameMap extends ShiGameObject {
     {
         // this.ctx.fillStyle = "rgba(53, 55, 75, 0.3)";
         this.ctx.fillStyle = "rgba(176,224,230, 0.6)";
+        // this.ctx.fillStyle = "rgba(176,224,230, 0)s";
+
         this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
     }
 
@@ -250,11 +266,11 @@ class MiniMap extends ShiGameObject {
     constructor(playground) {
         super();
         this.playground = playground;
-        this.$canvas = $(`<canvas class="mini_map"></canvas>`);
+        this.$canvas = $(`<canvas class="mini-map"></canvas>`);
         this.ctx = this.$canvas[0].getContext('2d');
         this.bg_color = "rgba(0, 0, 0, 0.3)";
         this.bright_color = "rgba(247, 232, 200, 0.7)";
-        this.players = this.playground.players; 
+        this.players = this.playground.players; // TODO: 这里是浅拷贝?
         this.pos_x = this.playground.width - this.playground.height * 0.3;
         this.pos_y = this.playground.height * 0.7;
         this.width = this.playground.height * 0.3;
@@ -267,6 +283,7 @@ class MiniMap extends ShiGameObject {
 
         this.lock = false;
         this.drag = false;
+
     }
 
     start() {
@@ -282,12 +299,13 @@ class MiniMap extends ShiGameObject {
         this.ctx.canvas.height = this.height;
 
         this.margin_right = (this.playground.$playground.width() - this.playground.width) / 2;
-        this.margin_top = (this.playground.$playground.height() - this.playground.height) / 2;
+        this.margin_bottom = (this.playground.$playground.height() - this.playground.height) / 2;
         this.$canvas.css({
             "position": "absolute",
             "right": this.margin_right,
-            "top": this.margin_top + 30,
+            "bottom": this.margin_bottom,
         });
+
     }
 
     add_listening_events() {
@@ -359,6 +377,7 @@ class MiniMap extends ShiGameObject {
         this.ctx.lineWidth = Math.ceil(3 * scale / 1080);
         this.ctx.strokeRect(this.rect_x1, this.rect_y1, w, h);
         this.ctx.restore();
+        
         for (let i = 0; i < this.players.length; i ++ ) {
             let obj = this.players[i];
             // 物体在真实地图上的位置 -> 物体在小地图上的位置
@@ -647,7 +666,7 @@ class Player extends ShiGameObject {
 
         });
 
-        $(window).keydown(function (e) {
+        this.playground.game_map.$canvas.keydown(function (e) {
             if(outer.playground.state !== 'fighting') 
             {
                 return true;
@@ -1013,7 +1032,7 @@ class Player extends ShiGameObject {
     render_skill_clodtime()
     {
         let scale = this.playground.scale;
-        let fireball_x = 1.5, fireball_y = 0.9, fireball_r = 0.04;
+        let fireball_x = 0.5 + 0.3, fireball_y = 0.9, fireball_r = 0.04;
         this.ctx.save();
         this.ctx.beginPath();
         this.ctx.arc(fireball_x * scale, fireball_y * scale, fireball_r * scale, 0, Math.PI * 2, false);
@@ -1023,7 +1042,7 @@ class Player extends ShiGameObject {
         this.ctx.restore();
 
 
-        let blink_x = 1.62, blink_y = 0.9, blink_r = 0.04;
+        let blink_x = 0.62 + 0.3, blink_y = 0.9, blink_r = 0.04;
         this.ctx.save();
         this.ctx.beginPath();
         this.ctx.arc(blink_x * scale, blink_y * scale, blink_r * scale, 0, Math.PI * 2, false);
@@ -1559,27 +1578,30 @@ class ShiGamePlayground {
         </div>
 
         <br>
-        <div class="shi_game_settings_qick_login">
+        <br>
+        <br>
 
-            <div class="shi_game_settings_qick_login_kong">
-
-                <div class="shi_game_settings_acwing">
-                    <img width="30" src="https://app171.acapp.acwing.com.cn/static/image/settings/acwing_logo.png">
-                    <br>
-                    <div>acwing</div>
-                    
+        <div class="shi_game_settings_quick_login">
+            <div class="shi_game_settings_quick_acwing">
+                <img width="30" src="/static/image/settings/acwing_logo.png">
+                <br>
+                <div>
+                    AcWing登录
                 </div>
-
-                <div class="shi_game_settings_kong">
-                    &nbsp;&nbsp;&nbsp;
+            </div>
+            <div class="shi_game_settings_quick_gitee">
+                <img width="30" src="https://cdn.acwing.com/media/article/image/2021/12/02/137551_c53a0bc853-META-INF_pluginIcon.png">
+                <br>
+                <div>
+                    Gitee登录
                 </div>
-
-                <div class="shi_game_settings_github">
-                    <img width="30" src="https://cdn.acwing.com/media/article/image/2021/12/02/137551_c53a0bc853-META-INF_pluginIcon.png">
-                    <br>
-                    <div>git ee</div>
-                </div>  
-
+            </div>
+            <div class="shi_game_settings_quick_github">
+                <img width="30" src="https://cdn.jsdelivr.net/gh/zhangying458/CDN/nav/chapter/axvol-1j3rc.webp">
+                <br>
+                <div>
+                    GitHub登录
+                </div>
             </div>
         </div>
         
@@ -1630,15 +1652,28 @@ class ShiGamePlayground {
         </div>
 
         <br>
-        <div class="shi_game_settings_acwing">
-            <img width="30" src="https://app171.acapp.acwing.com.cn/static/image/settings/acwing_logo.png">
-            <br>
-            <div>一键登录</div>
-        </div>
-        <div class="shi_game_settings_github">
-            <img width="30" src="https://cdn.acwing.com/media/article/image/2021/12/02/137551_c53a0bc853-META-INF_pluginIcon.png">
-            <br>
-            <div>git ee</div>
+        <div class="shi_game_settings_quick_login">
+            <div class="shi_game_settings_quick_acwing">
+                <img width="30" src="/static/image/settings/acwing_logo.png">
+                <br>
+                <div>
+                    AcWing登录
+                </div>
+            </div>
+            <div class="shi_game_settings_quick_gitee">
+                <img width="30" src="https://cdn.acwing.com/media/article/image/2021/12/02/137551_c53a0bc853-META-INF_pluginIcon.png">
+                <br>
+                <div>
+                    Gitee登录
+                </div>
+            </div>
+            <div class="shi_game_settings_quick_github">
+                <img width="30" src="https://cdn.jsdelivr.net/gh/zhangying458/CDN/nav/chapter/axvol-1j3rc.webp">
+                <br>
+                <div>
+                    GitHub登录
+                </div>
+            </div>
         </div>
 
     </div>
@@ -1665,8 +1700,10 @@ class ShiGamePlayground {
 
         this.$register.hide();
 
-        this.$acwing_login = this.$settings.find(".shi_game_settings_acwing img");
-        this.$github_login = this.$settings.find(".shi_game_settings_github img");
+        this.$acwing_login = this.$settings.find(".shi_game_settings_quick_acwing img");
+        this.$gitee_login = this.$settings.find(".shi_game_settings_quick_gitee img");
+        this.$github_login = this.$settings.find(".shi_game_settings_quick_github img");
+
 
         this.root.$shi_game.append(this.$settings);
 
@@ -1682,6 +1719,10 @@ class ShiGamePlayground {
         {
             console.log("yes");
             outer.acwing_login();
+        });
+        this.$gitee_login.click(function(){
+            console.log("yes");
+            outer.gitee_login();
         });
         this.$github_login.click(function(){
             console.log("yes");
@@ -1734,17 +1775,32 @@ class ShiGamePlayground {
         });
     }
 
-    // github一键登录
+    // gitee一键登录
+    gitee_login() 
+    {
+        console.log("gitee_click login");
+        $.ajax({
+            url: "https://app171.acapp.acwing.com.cn/settings/gitee/apply_code/",
+            type: "GET",
+            success: function(resp) {
+                if (resp.result === "success") {
+                    console.log(resp.apply_code_url);
+                    window.location.replace(resp.apply_code_url);
+                }
+            }
+        });
+    }
+
     github_login() 
     {
-        console.log("github_click login");
+        console.log("gitee_click login");
         $.ajax({
             url: "https://app171.acapp.acwing.com.cn/settings/github/apply_code/",
             type: "GET",
             success: function(resp) {
                 if (resp.result === "success") {
                     console.log(resp.apply_code_url);
-                    window.location.replace(resp.apply_code_url);
+                    // window.location.replace(resp.apply_code_url);
                 }
             }
         });

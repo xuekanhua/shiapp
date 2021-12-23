@@ -9,10 +9,9 @@ def get_state():
         res += str(randint(0, 9))
     return res
 
-# 2d04b912e20b3418d0c75bb432dd08fbe8ed6485
 def apply_code(request):
-    client_id = "3ddb70db79756a69a8c9"
-    redirect_uri = quote("https://app171.acapp.acwing.com.cn/settings/github/receive_code")
+    client_id = "c3231c34576b710370f8c831a97763bf65b8273043d3684dc3f2469138c7ad55"
+    redirect_uri = quote("https://app171.acapp.acwing.com.cn/settings/gitee/receive_code")
     scope = "userinfo"
     state = get_state()
     
@@ -20,10 +19,10 @@ def apply_code(request):
     cache.set(state, True, 7200) # 有效期2小时
     
     
-    apply_code_url = "https://github.com/login/oauth/authorize"
+    apply_code_url = "https://gitee.com/oauth/authorize"
     return JsonResponse({
         'result': "success",
-        'apply_code_url': apply_code_url + "?client_id=%s&redirect_uri=%s&state=%s" % (client_id, redirect_uri, state)
+        'apply_code_url': apply_code_url + "?response_type=code&client_id=%s&redirect_uri=%s&state=%s&scope=user_info" % (client_id, redirect_uri, state)
 
     })
     
