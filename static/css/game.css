@@ -1,11 +1,3 @@
-/* *::before,
-*::after {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-} */
-
-
 .shi_game_menu
 {
     width: 100%;
@@ -50,17 +42,15 @@
     height: 100%;
     user-select: none;
     background-color: rgba(176,223,230) ;
-    /* background-color: rgba(0,0,0) ; */
-    overflow: hidden;
-    
+    background-color: rgb(1, 2, 2) ;
 }
-/* .shi_game_playground > canvas
+.shi_game_playground > canvas
 {
     position: relative;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-} */
+}
 
 .shi_game_settings
 {
@@ -236,131 +226,104 @@
 .shi_game_settings_acwing
 {
     display: block;
+    float: left;
+    /* position: relative; */
+
+    /* left: 24%; */
     height: 7vh;
+}
+.shi_game_settings_github
+{
+    display: block;
+    float: left;
+    /* position: relative; */
+    /* left: 30%; */
+    height: 7vh;
+}
+.shi_game_settings_kong
+{
+    display: block;
+    float: left;
+    /* position: relative; */
+    /* left: 30%; */
+    height: 7vh;
+}
+.shi_game_settings_qick_login
+{
+    float: left;
+    display: block;
+    height: 10vh; 
+    margin:0 auto;
+    text-align: center;
+
+    /* position: relative;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);  */
+}
+
+.shi_game_settings_qick_login_kong 
+{
+    /* float: left; */
+    display: block;
+    height: 10vh; 
+    margin:0 auto;
+    position: relative;
+    top: 50%;
+    left: 120%;
+    /* transform: translate(-50%, -50%);   */
 }
 .shi_game_settings_acwing > img
-{
-    position: relative;
-    top: 45%;
-    left: 35%;
-    transform: translate(-50%, -50%);
-    cursor: pointer;
-    display: block;
-
-}
-.shi_game_settings_acwing > div
-{
-    color: #ffffff;
-    font-size: 2vh;
-    text-align: center;
-
-
-}
-.shi_game_settings_gitee
-{
-    display: block;
-    height: 7vh;
-}
-.shi_game_settings_gitee > img 
-{
-    position: relative;
-    top: 45%;
-    left: 65%;
-    transform: translate(-50%, -50%);
-    cursor: pointer;
-    display: block;
-
-}
-.shi_game_settings_gitee > div
-{
-    color: #ffffff;
-    font-size: 2vh;
-    text-align: center;
-
-
-}
-
-
-.shi_game_playground_game_map
 {
     position: relative;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-}
-
-.shi_game_settings_quick_login
-{
-    display: flex;
-    justify-content: space-around;
-    flex-direction: row;
-    height: 7vh;
-    width: 100%;
-
-    align-content: center;
-}
-
-.shi_game_settings_quick_acwing
-{
     cursor: pointer;
-    display: flex;
-    flex-direction: column;
+    display: block;
+    
 }
-
-.shi_game_settings_quick_acwing > img
+.shi_game_settings_github > img
 {
     position: relative;
-    top: 35%;
+    top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     cursor: pointer;
+    display: block;
+    
 }
-.shi_game_settings_quick_acwing > div
+.shi_game_settings_acwing > div
 {
-    color: #ffffff;
-    font-size: 1vh;
+    /* font-size: 1.5vh;
+    color: white;
+    text-align: center;
+    cursor: pointer;
+    display: block;
+     */
+
+    padding-top: 10px;
+    color: white;
+    font-size: 1.5vh;
+    text-align: center;
+    
+}
+.shi_game_settings_github > div
+{
+    /* font-size: 1.5vh;
+    color: white;
+    text-align: center;
+    cursor: pointer;
+    display: block;
+     */
+
+    padding-top: 10px;
+    color: white;
+    font-size: 1.5vh;
+    text-align: center;
+    
 }
 
-.shi_game_settings_quick_gitee
-{
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-}
-.shi_game_settings_quick_gitee > img
-{
-    position: relative;
-    top: 35%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    cursor: pointer;
-}
-.shi_game_settings_quick_gitee > div
-{
-    color: #ffffff;
-    font-size: 1vh;
-}
-
-.shi_game_settings_quick_github
-{
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-}
-
-.shi_game_settings_quick_github > img
-{
-    position: relative;
-    top: 35%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    cursor: pointer;
-}
-.shi_game_settings_quick_github > div
-{
-    color: #ffffff;
-    font-size: 1vh;
-}
 
 
 
