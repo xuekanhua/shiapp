@@ -5,8 +5,20 @@ from django.conf import settings
 # radis数据库
 from django.core.cache import cache
 
+from thrift import Thrift
+from thrift.transport import TSocket
+from thrift.transport import TTransport
+from thrift.protocol import TBinaryProtocol
+from game.models import player
+
+from match_system.src.match_server.match_service import Match
+from game.models.player.player import Player
+from channels.db import database_sync_to_async # 串行转并行
+
+
 class MultiPlayer(AsyncWebsocketConsumer):
     # 创建链接函数， 同意创建链接执行以下函数
+    # 并行操作
     async def connect(self):
         self.room_name = None
 
@@ -44,29 +56,63 @@ class MultiPlayer(AsyncWebsocketConsumer):
 
     # 断开链接函数， 但他不一定执行(突然断电)
     async def disconnect(self, close_code):
-        print('disconnect')
-        await self.channel_layer.group_discard(self.room_name, self.channel_name)
+        # print('disconnect')
+        if self.room_name:
+            await self.channel_layer.group_discard(self.room_name, self.channel_name)
 
 
-    # 创建玩家
+    # 创建玩家 无匹配版
+    # async def create_player(self, data):
+    #     players = cache.get(self.room_name)
+    #     players.append({
+    #         'uuid' : data['uuid'],
+    #         'username' : data['username'],
+    #         'photo' : data['photo'],
+    #     })
+    #     cache.set(self.room_name, players, 3600) # 有效期一小时
+    #     await self.channel_layer.group_send(
+    #         self.room_name,
+    #         {
+    #             'type' : "group_send_event",
+    #             'event' : "create_player",
+    #             'uuid' : data['uuid'],
+    #             'username' : data['username'],
+    #             'photo' : data['photo'],
+    #         }
+    #     )
+
+    # 创建玩家 匹配版
     async def create_player(self, data):
-        players = cache.get(self.room_name)
-        players.append({
-            'uuid' : data['uuid'],
-            'username' : data['username'],
-            'photo' : data['photo'],
-        })
-        cache.set(self.room_name, players, 3600) # 有效期一小时
-        await self.channel_layer.group_send(
-            self.room_name,
-            {
-                'type' : "group_send_event",
-                'event' : "create_player",
-                'uuid' : data['uuid'],
-                'username' : data['username'],
-                'photo' : data['photo'],
-            }
-        )
+        
+        self.room_name = None
+        self.uuid = data['uuid']
+        # Make socket
+        transport = TSocket.TSocket('127.0.0.1', 9090)
+
+        # Buffering is critical. Raw sockets are very slow
+        transport = TTransport.TBufferedTransport(transport)
+
+        # Wrap in a protocol
+        protocol = TBinaryProtocol.TBinaryProtocol(transport)
+
+        # Create a client to use the protocol encoder
+        client = Match.Client(protocol)
+
+        def db_get_player():
+            return Player.objects.get(user__username = data['username'])
+
+        # 异步函数  
+        player = await database_sync_to_async(db_get_player)()
+        # Connect!
+        transport.open()
+
+
+        client.add_player(player.score, data['uuid'], data['username'], data['photo'], self.channel_name)
+
+        # Close!
+        transport.close()
+
+
 
     # 玩家移动
     async def move_to(self, data):
@@ -122,6 +168,19 @@ class MultiPlayer(AsyncWebsocketConsumer):
             }
         )
 
+    async def message(self, data):
+        await self.channel_layer.group_send(
+            self.room_name,
+            {
+                'type' : "group_send_event",
+                'event' : "message",
+                'uuid' : data['uuid'],
+                'username' : data['username'],
+                'text' : data['text'],
+                
+            }
+        )
+
 
 
     
@@ -129,6 +188,10 @@ class MultiPlayer(AsyncWebsocketConsumer):
 
 
     async def group_send_event(self, data):
+        if not self.room_name:
+            keys = cache.keys('*%s*'%(self.uuid)) # 所有的uuid都是不同的只要找到一个uuid就可找到房间号
+            if keys:
+                self.room_name = keys[0]
         await self.send(text_data=json.dumps(data))
 
     # 接受前端向后端发送到请求
@@ -145,6 +208,8 @@ class MultiPlayer(AsyncWebsocketConsumer):
             await self.attack(data)
         elif(event == "blink"):
             await self.blink(data)
+        elif(event == "message"):
+            await self.message(data)
         # print(data)
 
 
