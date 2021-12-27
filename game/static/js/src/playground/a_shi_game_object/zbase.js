@@ -29,6 +29,10 @@ class ShiGameObject { //基类，文件夹前缀加个a
     {
 
     }
+    late_update()
+    {
+        
+    }
     on_destory() // 删除前执行一次
     {
 
@@ -61,6 +65,12 @@ let SHI_GAME_ANIMATION = function (timestamp) {
             obj.update();
         }
     }
+    
+    for (let i = 0; i < SHI_GAME_OBJECTS.length; i++) {
+        let obj = SHI_GAME_OBJECTS[i];
+        obj.late_update();
+    }
+
     last_timestamp = timestamp;
     //判定结束
     if(game_over === 1)

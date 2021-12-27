@@ -125,16 +125,16 @@ class Player extends ShiGameObject {
                 if (tx < 0 || tx > outer.playground.virtual_map_width || ty < 0 || ty > outer.playground.virtual_map_height) return; // 不能向地图外移动
 
                 //点击地图的粒子效果
-                for (let i = 0; i < 10 + Math.random() * 10; i++) {
-                    //相对位置 
-                    let radius = outer.radius * Math.random() * 0.08;
-                    let angle = Math.random() * Math.PI * 2;
-                    let vx = Math.cos(angle), vy = Math.sin(angle);
-                    let color = outer.color;
-                    let speed = outer.speed * 0.15 * 5;
-                    let move_length = outer.radius * Math.random() * 2;
-                    new Particle(outer.playground, tx, ty, radius, vx, vy, "green", speed, move_length);
-                }
+                // for (let i = 0; i < 10 + Math.random() * 10; i++) {
+                //     //相对位置 
+                //     let radius = outer.radius * Math.random() * 0.08;
+                //     let angle = Math.random() * Math.PI * 2;
+                //     let vx = Math.cos(angle), vy = Math.sin(angle);
+                //     let color = outer.color;
+                //     let speed = outer.speed * 0.15 * 5;
+                //     let move_length = outer.radius * Math.random() * 2;
+                //     new Particle(outer.playground, tx, ty, radius, vx, vy, "green", speed, move_length);
+                // }
                 // 相对位置 
 
                 outer.move_to(tx, ty);
@@ -159,7 +159,7 @@ class Player extends ShiGameObject {
                         return false;
                     }
                     let fireball = outer.shoot_fireball(tx, ty);
-                    outer.fireball_coldtime = 3;
+                    outer.fireball_coldtime = 0;
                     
                     // outer.shoot_fireball(ctx_x / outer.playground.scale, ctx_y / outer.playground.scale) / outer.playground.scale;
                     if(outer.playground.mode === "multi mode")
@@ -198,6 +198,8 @@ class Player extends ShiGameObject {
 
             if (e.which === 13) //enter
             {
+                console.log(SHI_GAME_OBJECTS);
+
                 if(outer.playground.mode === "multi mode")
                 { // 打开聊天框
                     outer.playground.chat_field.show_input();
@@ -307,6 +309,21 @@ class Player extends ShiGameObject {
     }
 
     move_to(tx, ty) {
+        let outer = this;
+        if(this.character === "me")
+        {
+            for (let i = 0; i < 10 + Math.random() * 10; i++) {
+                //相对位置 
+                let radius = outer.radius * Math.random() * 0.08;
+                let angle = Math.random() * Math.PI * 2;
+                let vx = Math.cos(angle), vy = Math.sin(angle);
+                let color = outer.color;
+                let speed = outer.speed * 0.15 * 5;
+                let move_length = outer.radius * Math.random() * 2;
+                new Particle(outer.playground, tx, ty, radius, vx, vy, "green", speed, move_length);
+            }
+        }
+        
         // console.log("move to ", tx, ty);
         this.move_length = this.get_dist(this.x, this.y, tx, ty);
         let angle = Math.atan2(ty - this.y, tx - this.x);
@@ -360,7 +377,7 @@ class Player extends ShiGameObject {
         
         if(this.user_mode === "single")
         {
-            this.update_single_gameover();
+            // this.update_single_gameover();
         }
         if(this.character === "me" && this.playground.state === "fighting")
         {
@@ -512,12 +529,15 @@ class Player extends ShiGameObject {
             if(this.playground.player_count === 1)
             {
                 this.playground.notice_board.write("🎉🎉✨✨恭喜你取得最终胜利✨✨🎉🎉");
+                this.playground.score_board.win();
             }
         }
         if(this.character === "me")
         {
             this.playground.state = "over";
             this.playground.notice_board.write("🐽铸币吧，好菜呀🐽");
+            this.playground.score_board.lose();
+
         }
         for(let i = 0; i < this.playground.players.length; i ++)
         {
@@ -531,7 +551,7 @@ class Player extends ShiGameObject {
                     game_over = 1;
                 }
                 this.playground.players.splice(i, 1);
-                console.log("on_destory");
+                // console.log("on_destory");
                 break;
             }
         }

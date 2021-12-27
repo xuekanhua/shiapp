@@ -15,14 +15,35 @@ class ShiGamePlayground {
         return colors[Math.floor(Math.random() * 5)];
     }
 
+    create_uuid()
+    {
+        let res = "";
+        for(let i = 0 ; i < 8; i ++)
+        {
+            let x = parseInt(Math.floor(Math.random() * 10));
+            res += x;
+        }
+        return res;
+    }
+
     start() {
         let outer = this;
-        console.log("start playground");
+        let uuid = this.create_uuid();
+        // console.log("start playground");
         //更新地图
-        $(window).resize(function()
+        $(window).on(`resize.${uuid}`, function()
         {
+            // console.log("resize");
             outer.resize();
         });
+
+        if (this.root.AcWingOS)
+        {
+            this.root.AcWingOS.api.window.on_close(function()
+            {
+                $(window).off(`resize.${uuid}`);
+            });
+        }
     }
 
     //更新地图
@@ -69,11 +90,14 @@ class ShiGamePlayground {
         this.resize();
         this.mode = mode;
 
+        
+
         this.state = "waiting"; // ---> fighting ---> over
         this.players = [];
 
         this.notice_board = new NoticeBoard(this);
         this.player_count = 0;
+        this.score_board = new ScoreBoard(this);
 
         if(mode === "single mode")
         {
@@ -111,10 +135,34 @@ class ShiGamePlayground {
         // 在地图和玩家都创建好后，创建小地图对象
         this.mini_map = new MiniMap(this, this.game_map);
         this.mini_map.resize();
+        
+
 
 
     }
     hide() {
+        while (this.players && this.players.length > 0) {
+            this.players[0].destory();
+        }
+
+        if (this.game_map) {
+            this.game_map.destory();
+            this.game_map = null;
+        }
+
+        if (this.notice_board) {
+            this.notice_board.destory();
+            this.notice_board = null;
+        }
+
+        if (this.score_board) {
+            this.score_board.destory();
+            this.score_board = null;
+            console.log('12344');
+        }
+
+        this.$playground.empty();
+
         this.$playground.hide();
     }
 

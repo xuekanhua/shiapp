@@ -1,3 +1,4 @@
+from re import S
 from channels.generic.websocket import AsyncWebsocketConsumer
 import json
 # shiapp/settings
@@ -141,6 +142,40 @@ class MultiPlayer(AsyncWebsocketConsumer):
         )
 
     async def attack(self, data):
+        # 更新战绩
+        if not self.room_name:
+            return 
+        players = cache.get(self.room_name)
+        if not players :
+            return 
+        for player in players:
+            if player['uuid'] == data['attackee_uuid']:
+                player['hp'] -= 20
+
+        remain_cnt = 0
+        for player in players:
+            if player['hp'] > 0:
+                remain_cnt += 1
+        if remain_cnt > 1:
+            if self.room_name:
+                cache.set(self.room_name, players, 3600)
+        else:
+            # 操作数据库的封装函数(必须使用)
+            def db_update_player_score(username, score):
+                player = Player.objects.get(user__username=username)
+                player.score += score
+                player.save()
+
+            for player in players:
+                if player['hp'] <= 0:
+                    # 调用数据库函数一定要加await。因为数据库函数会封装成异步函数
+                    await database_sync_to_async(db_update_player_score)(player['username'], -5)
+                else:
+                    await database_sync_to_async(db_update_player_score)(player['username'], 10)
+
+
+        
+
         await self.channel_layer.group_send(
             self.room_name,
             {

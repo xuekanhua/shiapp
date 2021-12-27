@@ -11,7 +11,7 @@ class Grid extends ShiGameObject {
         this.boder = boder;
         this.x = this.i * this.l;
         this.y = this.j * this.l;
-        this.stroke_color = "rgba(0, 0, 0, 0.01)";
+        this.stroke_color = "rgba(0, 0, 0, 0.1)";
         if (this.boder === false)this.stroke_color = "black";
         // if(this.x === 0)this.stroke_color = "rgba(0, 0, 0, 1)";
     }
@@ -55,13 +55,15 @@ class GameMap extends ShiGameObject {
         this.height = this.playground.height;
         this.ctx.canvas.width = this.width;
         this.ctx.canvas.height = this.height;
-
         this.playground.$playground.append(this.$canvas);
+        this.generate_grid();
+        this.start();
 
     }
     start() {
+        
         this.$canvas.focus();
-        this.generate_grid();
+        
         // this.generate_wall();
         // this.has_called_start = true;
         
@@ -114,6 +116,13 @@ class GameMap extends ShiGameObject {
 
         this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
     }
+    // on_destory()
+    // {
+    //     while (this.grids && this.grids.length > 0) {
+    //         this.grids[0].destory();
+    //     }
+    //     grids = [];
+    // }
 
 }
 
@@ -185,7 +194,8 @@ class MiniMap extends ShiGameObject {
                 outer.rect_y1 = ctx_y - (outer.playground.height / 2 / outer.playground.scale / outer.playground.virtual_map_height) * outer.height;
             } else if (e.which === 3) { // 右键，移动过去
                 let player = outer.playground.players[0];
-                if (player.is_me) {
+                if (player.character === "me") {
+                    
                     player.move_to(tx, ty);
                 }
             }
