@@ -169,9 +169,9 @@ class MultiPlayer(AsyncWebsocketConsumer):
             for player in players:
                 if player['hp'] <= 0:
                     # 调用数据库函数一定要加await。因为数据库函数会封装成异步函数
-                    await database_sync_to_async(db_update_player_score)(player['username'], -5)
+                    await database_sync_to_async(db_update_player_score)(player['username'], -50)
                 else:
-                    await database_sync_to_async(db_update_player_score)(player['username'], 10)
+                    await database_sync_to_async(db_update_player_score)(player['username'], +100)
 
 
         

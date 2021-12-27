@@ -39,11 +39,24 @@ class Pool:
         self.players = []
     def add_player(self, player):
         print("Add_player  %s  %d" %(player.username, player.score))
+        flag = None
+        for i in self.players:
+            if player.username == i.username:
+                flag = i
+                break
+        if flag:
+            print(1)
+            self.players.remove(flag)
+
+
         self.players.append(player)
+        for i in self.players:
+            print(i.username, end = " ;")
+        print()
 
     def check_match(self, a, b):
-        # if a.username == b.username:
-        #     return False
+        if a.username == b.username:
+            return False
         dt = abs(a.score - b.score)
         a_max_dif = a.waiting_time * 50
         b_max_dif = b.waiting_time * 50

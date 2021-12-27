@@ -4,7 +4,7 @@ class Settings {
         this.platform = "WEB";
         if(this.root.AcWingOS) this.platform = "ACAPP";
 
-        console.log(this.platform);
+        // console.log(this.platform);
         this.username = "";
         this.photo = "";
 
@@ -184,15 +184,15 @@ class Settings {
         this.add_listening_events_register();
         this.$acwing_login.click(function()
         {
-            console.log("yes");
+            // console.log("yes");
             outer.acwing_login();
         });
         this.$gitee_login.click(function(){
-            console.log("yes");
+            // console.log("yes");
             outer.gitee_login();
         });
         this.$github_login.click(function(){
-            console.log("yes");
+            // console.log("yes");
             outer.github_login();
         });
 
@@ -226,7 +226,7 @@ class Settings {
 
     acwing_login()
     {
-        console.log("acwing_click login");
+        // console.log("acwing_click login");
         $.ajax({
             url : "https://app171.acapp.acwing.com.cn/settings/acwing/web/apply_code/",
             type: "GET",
@@ -234,7 +234,7 @@ class Settings {
             {
                 if(resp.result === "success")
                 {
-                    console.log(resp.apply_code_url);
+                    // console.log(resp.apply_code_url);
                     window.location.replace(resp.apply_code_url);
                     
                 }
@@ -245,13 +245,13 @@ class Settings {
     // gitee一键登录
     gitee_login() 
     {
-        console.log("gitee_click login");
+        // console.log("gitee_click login");
         $.ajax({
             url: "https://app171.acapp.acwing.com.cn/settings/gitee/apply_code/",
             type: "GET",
             success: function(resp) {
                 if (resp.result === "success") {
-                    console.log(resp.apply_code_url);
+                    // console.log(resp.apply_code_url);
                     window.location.replace(resp.apply_code_url);
                 }
             }
@@ -260,14 +260,14 @@ class Settings {
 
     github_login() 
     {
-        console.log("gitee_click login");
+        // console.log("gitee_click login");
         $.ajax({
             url: "https://app171.acapp.acwing.com.cn/settings/github/apply_code/",
             type: "GET",
             success: function(resp) {
                 if (resp.result === "success") {
                     console.log(resp.apply_code_url);
-                    // window.location.replace(resp.apply_code_url);
+                    window.location.replace(resp.apply_code_url);
                 }
             }
         });
@@ -280,11 +280,11 @@ class Settings {
     {
         if(this.platform === "ACAPP")
         {
-            console.log("login_acapp");
+            // console.log("login_acapp");
             this.getinfo_acapp();
         }
         else{
-            console.log("login_web");
+            // console.log("login_web");
             this.getinfo_web();
             this.add_listening_events();
         }
@@ -308,10 +308,12 @@ class Settings {
             },
             success: function(resp)
             {
-                console.log(resp);
+                // console.log(resp);
                 if(resp.result === "success")
                 {
                     location.reload();
+                    // console.log("555");
+                    
 
                 }
                 else{
@@ -342,11 +344,12 @@ class Settings {
             },
             success : function(resp)
             {
-                console.log(resp);
-                console.log(resp.result);
+                // console.log(resp);
+                // console.log(resp.result);
                 if(resp.result === "success")
                 {
                     location.reload();
+                    // console.log("555");
                 }
                 else{
                     outer.$register_error_messages.html(resp.result);
@@ -366,7 +369,7 @@ class Settings {
             type : "GET",
             success : function(resp)
             {
-                console.log(resp)
+                // console.log(resp)
                 if(resp.result === "success" || resp.result === "success_not")
                 {
                     location.reload();
@@ -395,9 +398,9 @@ class Settings {
     {
         let outer = this;
         this.root.AcWingOS.api.oauth2.authorize(appid, redirect_uri, scope, state, function(resp){
-            console.log("called from acapp_login function");
-            console.log(resp.result);
-            console.log(resp);
+            // console.log("called from acapp_login function");
+            // console.log(resp.result);
+            // console.log(resp);
             if(resp.result === "success")
             {
                 outer.username = resp.username;
@@ -437,12 +440,15 @@ class Settings {
                 platform : outer.platform,
             },
             success :function(resp){
-                console.log(resp);
+                // console.log(resp);
                 if(resp.result === "success"){
                     outer.username = resp.username;
                     outer.photo = resp.photo;
                     outer.hide();
                     outer.root.menu.show();
+                    outer.root.menu.$userinfo_username.html("用户名：" + resp.username);
+                    outer.root.menu.$userinfo_score.html("战绩：" + resp.score);
+                    outer.root.menu.$userinfo_img.html("<img  src="+ resp.photo +">");
 
                 }else{
                     outer.login();

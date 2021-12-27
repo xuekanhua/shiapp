@@ -1,7 +1,7 @@
 class ScoreBoard extends ShiGameObject {
     constructor(playground) {
         super();
-        console.log("ss");
+        // console.log("ss");
         this.playground = playground;
         this.ctx = this.playground.game_map.ctx;
 
@@ -17,7 +17,7 @@ class ScoreBoard extends ShiGameObject {
     start() {
         // this.win(); 
         // console.log("win____");
-        console.log(this.state);
+        // console.log(this.state);
     }
 
     add_listening_events() {

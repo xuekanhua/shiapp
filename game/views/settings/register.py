@@ -40,13 +40,15 @@ def register(request):
     "https://i0.hdslb.com/bfs/emote/438405970cbab6c6a06119bd9d9b474df62eb50c.png@100w_100h.webp",
     "https://i0.hdslb.com/bfs/emote/eda63a6172a2b4b3fc753e609d32cd63a5ac2761.png@100w_100h.webp",
     "https://i0.hdslb.com/bfs/emote/3cbc05078eee45c0861ce37e63092e379ae93d57.png@100w_100h.webp",
+    "https://cdn.acwing.com/media/article/image/2021/12/27/137551_b056a7b066-zz.jpg",
+    "https://cdn.acwing.com/media/article/image/2021/12/27/137551_a737eeb066-bb.jpg",
+    "https://cdn.acwing.com/media/article/image/2021/12/27/137551_71f60b3866-moooo.jpg"
         ]
     # Player.objects.create(user=user, photo="https://cdn.acwing.com/media/user/profile/photo/69128_lg_c8103deb2b.jpg")
-    if(photo and photo.index("http") == 1):
-        # print("000000000000000000000000000000000000000")
+    if(photo and photo.index("https://") == 1):
+        
         Player.objects.create(user=user, photo=photo)
     else:
-        # print("111111111111111111111111111111111000000000000000000000000000000000000000")
 
         Player.objects.create(user=user, photo=random.choice(ph))
 

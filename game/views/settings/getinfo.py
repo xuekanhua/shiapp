@@ -8,6 +8,8 @@ def getinfo_acapp(request):
         'result':"success",
         'username':player.user.username,
         'photo':player.photo,
+        'score': player.score,
+
     })
 
 
@@ -24,15 +26,16 @@ def getinfo_web(request):
             'result':"success",
             'username':player.user.username,
             'photo':player.photo,
+            'score': player.score,
         })
 
 
 def getinfo(request):
     platform = request.GET.get('platform')
     if platform == "ACAPP":
-        print("***********************************************")
-        print("acapp端登录")
-        print("***********************************************")
+    #     print("***********************************************")
+    #     print("acapp端登录")
+    #     print("***********************************************")
         return getinfo_acapp(request)
     elif platform == "WEB" :
         return getinfo_web(request)

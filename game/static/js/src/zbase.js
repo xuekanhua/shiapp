@@ -1,7 +1,7 @@
 
 export class ShiGame {
     constructor(id, AcWingOS) {
-        console.log(AcWingOS);
+        // console.log(AcWingOS);
         
         this.id = id;
         this.$shi_game = $('#' + id);
@@ -9,10 +9,11 @@ export class ShiGame {
         this.settings = new Settings(this);
         this.menu = new ShiGameMenu(this);
         this.playground = new ShiGamePlayground(this);
+        this.rankinglist = new RankingList(this);
 
         this.start();
     }
     start() {
-        console.log("start")
+        // console.log("start")
     }
 }

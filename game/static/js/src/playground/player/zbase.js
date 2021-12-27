@@ -1,7 +1,7 @@
 
 class Player extends ShiGameObject {
     constructor(playground, x, y, radius, color, speed, character, username, photo, user_mode) {
-        console.log(character, username, photo);
+        // console.log(character, username, photo);
         super();
         this.playground = playground;
         this.ctx = this.playground.game_map.ctx;
@@ -39,7 +39,7 @@ class Player extends ShiGameObject {
             this.img = new Image();
             this.img.src = "https://app171.acapp.acwing.com.cn/static/image/playground/huaidan.png"
         }
-        console.log(this.user_mode);
+        // console.log(this.user_mode);
 
         if(this.character === "me")
         {
@@ -63,7 +63,7 @@ class Player extends ShiGameObject {
 
     start() {
         this.playground.player_count ++;
-        this.playground.notice_board.write("已就绪：" + this.playground.player_count + "/3    再等等嘛🥰");
+        this.playground.notice_board.write("🥰 智能匹配中");
         if(this.playground.player_count >= 3)
         {
             this.playground.state = "fighting";
@@ -462,7 +462,7 @@ class Player extends ShiGameObject {
         if(last_timestamp - game_over_time >= 500 && game_over === -1)
         {
             game_over = 0;
-            console.log(game_is_win);
+            // console.log(game_is_win);
             if(game_is_win === -1)
             {
                 
