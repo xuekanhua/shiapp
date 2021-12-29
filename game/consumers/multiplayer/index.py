@@ -13,8 +13,9 @@ from thrift.protocol import TBinaryProtocol
 from game.models import player
 
 from match_system.src.match_server.match_service import Match
-from game.models.player.player import Player
+from game.models.player.player import Player # 引入数据库
 from channels.db import database_sync_to_async # 串行转并行
+# 数据库在channels调用时是异步调用，但数据库是同步调用所以需要database_sync_to_async
 
 
 class MultiPlayer(AsyncWebsocketConsumer):
@@ -22,42 +23,62 @@ class MultiPlayer(AsyncWebsocketConsumer):
     # 并行操作
     async def connect(self):
         self.room_name = None
+        self.username = None
 
-        for i in range(1000):
-            name = "room-%d" % (i)
-            if not cache.has_key(name) or len(cache.get(name)) < settings.ROOM_CAPACITY:
-                self.room_name = name
-                break
+        # for i in range(1000):
+        #     name = "room-%d" % (i)
+        #     if not cache.has_key(name) or len(cache.get(name)) < settings.ROOM_CAPACITY:
+        #         self.room_name = name
+        #         break
 
-        if not self.room_name:
-            return
+        # if not self.room_name:
+        #     return
         
         # 成功创建链接
         await self.accept()
-
         print('accept')
-        if not cache.has_key(self.room_name):
-            cache.set(self.room_name, [], 3600) # 有效期一小时
+        # if not cache.has_key(self.room_name):
+        #     cache.set(self.room_name, [], 3600) # 有效期一小时
 
 
-        for player in cache.get(self.room_name):
-            # dumps 将字典变成字符串 
-            await self.send(text_data=json.dumps({
-                'event' : "create_player",
-                'uuid' : player['uuid'],
-                'username':player['username'],
-                'photo' : player['photo'],
+        # for player in cache.get(self.room_name):
+        #     # dumps 将字典变成字符串 
+        #     await self.send(text_data=json.dumps({
+        #         'event' : "create_player",
+        #         'uuid' : player['uuid'],
+        #         'username':player['username'],
+        #         'photo' : player['photo'],
 
-            }))
+        #     }))
 
         # 引入group组的概念，进行群发
         # self.room_name = "room"
         # 添加进组
-        await self.channel_layer.group_add(self.room_name, self.channel_name)
+        # await self.channel_layer.group_add(self.room_name, self.channel_name)
 
     # 断开链接函数， 但他不一定执行(突然断电)
     async def disconnect(self, close_code):
-        # print('disconnect')
+        print('disconnect', self.room_name, self.username)
+        # Make socket
+        transport = TSocket.TSocket('127.0.0.1', 9090)
+
+        # Buffering is critical. Raw sockets are very slow
+        transport = TTransport.TBufferedTransport(transport)
+
+        # Wrap in a protocol
+        protocol = TBinaryProtocol.TBinaryProtocol(transport)
+
+        # Create a client to use the protocol encoder
+        client = Match.Client(protocol)
+
+        # Connect!
+        transport.open()
+
+        client.remove_player(self.username)
+
+        # Close!
+        transport.close()
+
         if self.room_name:
             await self.channel_layer.group_discard(self.room_name, self.channel_name)
 
@@ -86,6 +107,7 @@ class MultiPlayer(AsyncWebsocketConsumer):
     async def create_player(self, data):
         
         self.room_name = None
+        self.username = data['username']
         self.uuid = data['uuid']
         # Make socket
         transport = TSocket.TSocket('127.0.0.1', 9090)
@@ -99,16 +121,18 @@ class MultiPlayer(AsyncWebsocketConsumer):
         # Create a client to use the protocol encoder
         client = Match.Client(protocol)
 
+        # 数据库调用函数
         def db_get_player():
             return Player.objects.get(user__username = data['username'])
 
-        # 异步函数  
+        # 异步函数  调用
         player = await database_sync_to_async(db_get_player)()
         # Connect!
         transport.open()
 
 
         client.add_player(player.score, data['uuid'], data['username'], data['photo'], self.channel_name)
+        
 
         # Close!
         transport.close()

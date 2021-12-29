@@ -17,11 +17,12 @@ from queue import Queue
 from time import sleep
 from threading import Thread
 
-from shiapp.asgi import channel_layer
-from asgiref.sync import async_to_sync 
+from shiapp.asgi import channel_layer # 调用wss.index的函数
+from asgiref.sync import async_to_sync # 并行变串行
 from django.core.cache import cache
 
 queue = Queue() # 消息队列
+del_queue = Queue()
 
 # 生产者与消费者模型
 
@@ -47,12 +48,26 @@ class Pool:
         if flag:
             print(1)
             self.players.remove(flag)
-
-
         self.players.append(player)
+        print("现在共有", len(self.players), "名玩家")
         for i in self.players:
             print(i.username, end = " ;")
-        print()
+        print("\n---------------")
+    
+    def remove_player(self, username):
+        flag = None
+        for i in self.players:
+            if username == i.username:
+                flag = i
+                break
+        if flag:
+            print(1)
+            self.players.remove(flag)
+        print("现在共有", len(self.players), "名玩家")
+        for i in self.players:
+            print(i.username, end = " ;")
+        print("\n-----------------")
+    
 
     def check_match(self, a, b):
         if a.username == b.username:
@@ -67,7 +82,7 @@ class Pool:
         room_name = "room-%s-%s-%s" % (ps[0].uuid, ps[1].uuid, ps[2].uuid)
         players = []
         for p in ps:
-            async_to_sync(channel_layer.group_add)(room_name, p.channel_name)
+            async_to_sync(channel_layer.group_add)(room_name, p.channel_name) # 并行函数变成串行
             players.append({
                 'uuid' : p.uuid,
                 'username' : p.username,
@@ -77,6 +92,7 @@ class Pool:
         cache.set(room_name, players, 3600) # use 1hour
 
         for p in ps:
+            # 并行函数变成串行
             async_to_sync(channel_layer.group_send)(
                 room_name,
                 {
@@ -114,17 +130,30 @@ class MatchHandler:
         player = Player(score, uuid, username, photo, channel_name)
         queue.put(player)
         return 0
+    def remove_player(self, username):
+        del_queue.put(username)
+        return 0
+
 
 def get_player_from_queue():
     try:
         return queue.get_nowait()
     except:
         return None
+def get_username_from_queue():
+    try:
+        return del_queue.get_nowait()
+    except:
+        return None
+
 
 def worker():
     pool = Pool()
     while True:
         player = get_player_from_queue()
+        username = get_username_from_queue()
+        if username:
+            pool.remove_player(username)
         if player:
             pool.add_player(player)
         else:

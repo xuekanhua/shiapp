@@ -650,13 +650,13 @@ class Player extends ShiGameObject {
         else
         {
             this.img = new Image();
-            this.img.src = "https://app171.acapp.acwing.com.cn/static/image/playground/huaidan.png"
+            this.img.src = "https://cdn.acwing.com/media/article/image/2021/12/29/137551_88610d5968-diren.png"
         }
         // console.log(this.user_mode);
 
         if(this.character === "me")
         {
-            this.fireball_coldtime = 3;
+            this.fireball_coldtime = 2;
             this.fireball_img = new Image();
             this.fireball_img.src = "https://cdn.acwing.com/media/article/image/2021/12/02/1_9340c86053-fireball.png";
 
@@ -667,7 +667,7 @@ class Player extends ShiGameObject {
         }
         else if(this.character === "robot")
         {
-            this.fireball_coldtime = 3;
+            this.fireball_coldtime = 2;
 
         }
 
@@ -1135,6 +1135,14 @@ class Player extends ShiGameObject {
 
     on_destory()
     {
+        console.log(this);
+        if(this.character === "me")
+        {
+            this.playground.state = "over";
+            this.playground.notice_board.write("🐽铸币吧，好菜呀🐽");
+            this.playground.score_board.lose();
+
+        }
         this.playground.player_count --;
         if(this.playground.state === "fighting")
         {
@@ -1145,13 +1153,7 @@ class Player extends ShiGameObject {
                 this.playground.score_board.win();
             }
         }
-        if(this.character === "me")
-        {
-            this.playground.state = "over";
-            this.playground.notice_board.write("🐽铸币吧，好菜呀🐽");
-            this.playground.score_board.lose();
-
-        }
+        
         for(let i = 0; i < this.playground.players.length; i ++)
         {
             if(this.playground.players[i] === this)
@@ -1235,7 +1237,7 @@ class Player extends ShiGameObject {
         {
             this.ctx.beginPath();
             this.ctx.moveTo(fireball_x * scale, fireball_y * scale);
-            this.ctx.arc(fireball_x * scale, fireball_y * scale, fireball_r * scale, 0 - Math.PI / 2, Math.PI * 2 * (1 - this.fireball_coldtime / 3) - Math.PI / 2, true);
+            this.ctx.arc(fireball_x * scale, fireball_y * scale, fireball_r * scale, 0 - Math.PI / 2, Math.PI * 2 * (1 - this.fireball_coldtime / 2) - Math.PI / 2, true);
             this.ctx.lineTo(fireball_x * scale, fireball_y * scale);
             this.ctx.fillStyle = "rgba(0, 0, 255, 0.5)";
             this.ctx.fill();
@@ -1272,8 +1274,8 @@ class Player extends ShiGameObject {
 
     start() {
         // this.win(); 
-        // console.log("win____");
-        // console.log(this.state);
+        console.log(this.playground);
+        console.log(this.state);
     }
 
     add_listening_events() {
@@ -1290,7 +1292,10 @@ class Player extends ShiGameObject {
     }
 
     win() {
+        if(this.state !== null)return true;
         this.state = "win";
+        console.log(this.state);
+
         let outer = this;
         setTimeout(function() {
             outer.add_listening_events();
@@ -1299,7 +1304,10 @@ class Player extends ShiGameObject {
     }
 
     lose() {
+        if(this.state !== null)return true;
         this.state = "lose";
+        console.log(this.state);
+
         let outer = this;
         setTimeout(function() {
             outer.add_listening_events();
@@ -1849,7 +1857,7 @@ class ShiGamePlayground {
         if (this.score_board) {
             this.score_board.destory();
             this.score_board = null;
-            console.log('12344');
+            // console.log('12344');
         }
 
         this.$playground.empty();
@@ -1888,7 +1896,7 @@ class ShiGamePlayground {
         outer.send_get(url, field, f_title);
     }
     send_get(url, field, title) {
-        console.log("获取数据库");
+        // console.log("获取数据库");
         let outer = this;
         $.ajax({
             url: url,
@@ -2289,6 +2297,8 @@ class Settings {
                 }
                 else{
                     outer.$register_error_messages.html(resp.result);
+                    // console.log("555df");
+
                 }
 
             }
@@ -2357,9 +2367,18 @@ class Settings {
             type : "GET",
             success : function(resp)
             {
+                console.log(resp);
+
                 if(resp.result === "success")
                 {
                     outer.acapp_login(resp.appid, resp.redirect_uri, resp.scope, resp.state);
+                    outer.username = resp.username;
+                    outer.photo = resp.photo;
+                    outer.hide();
+                    outer.root.menu.show();
+                    outer.root.menu.$userinfo_username.html("用户名：" + resp.username);
+                    outer.root.menu.$userinfo_score.html("战绩：" + resp.score);
+                    outer.root.menu.$userinfo_img.html("<img  src="+ resp.photo +">");
                 }
             }
 

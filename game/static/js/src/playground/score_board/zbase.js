@@ -16,8 +16,8 @@ class ScoreBoard extends ShiGameObject {
 
     start() {
         // this.win(); 
-        // console.log("win____");
-        // console.log(this.state);
+        console.log(this.playground);
+        console.log(this.state);
     }
 
     add_listening_events() {
@@ -34,7 +34,10 @@ class ScoreBoard extends ShiGameObject {
     }
 
     win() {
+        if(this.state !== null)return true;
         this.state = "win";
+        console.log(this.state);
+
         let outer = this;
         setTimeout(function() {
             outer.add_listening_events();
@@ -43,7 +46,10 @@ class ScoreBoard extends ShiGameObject {
     }
 
     lose() {
+        if(this.state !== null)return true;
         this.state = "lose";
+        console.log(this.state);
+
         let outer = this;
         setTimeout(function() {
             outer.add_listening_events();

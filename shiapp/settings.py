@@ -31,7 +31,7 @@ ALLOWED_HOSTS = ["47.95.3.50", "app171.acapp.acwing.com.cn"]
 # Application definition
 
 INSTALLED_APPS = [
-    'channels',
+    'channels',  # 加入channels
     "game.apps.GameConfig",
     'django.contrib.admin',
     'django.contrib.auth',
@@ -152,5 +152,7 @@ CHANNEL_LAYERS = {
         },
     },
 }
+
+
 
 ROOM_CAPACITY = 3

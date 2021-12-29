@@ -37,13 +37,13 @@ class Player extends ShiGameObject {
         else
         {
             this.img = new Image();
-            this.img.src = "https://app171.acapp.acwing.com.cn/static/image/playground/huaidan.png"
+            this.img.src = "https://cdn.acwing.com/media/article/image/2021/12/29/137551_88610d5968-diren.png"
         }
         // console.log(this.user_mode);
 
         if(this.character === "me")
         {
-            this.fireball_coldtime = 3;
+            this.fireball_coldtime = 2;
             this.fireball_img = new Image();
             this.fireball_img.src = "https://cdn.acwing.com/media/article/image/2021/12/02/1_9340c86053-fireball.png";
 
@@ -54,7 +54,7 @@ class Player extends ShiGameObject {
         }
         else if(this.character === "robot")
         {
-            this.fireball_coldtime = 3;
+            this.fireball_coldtime = 2;
 
         }
 
@@ -522,6 +522,14 @@ class Player extends ShiGameObject {
 
     on_destory()
     {
+        console.log(this);
+        if(this.character === "me")
+        {
+            this.playground.state = "over";
+            this.playground.notice_board.write("🐽铸币吧，好菜呀🐽");
+            this.playground.score_board.lose();
+
+        }
         this.playground.player_count --;
         if(this.playground.state === "fighting")
         {
@@ -532,13 +540,7 @@ class Player extends ShiGameObject {
                 this.playground.score_board.win();
             }
         }
-        if(this.character === "me")
-        {
-            this.playground.state = "over";
-            this.playground.notice_board.write("🐽铸币吧，好菜呀🐽");
-            this.playground.score_board.lose();
-
-        }
+        
         for(let i = 0; i < this.playground.players.length; i ++)
         {
             if(this.playground.players[i] === this)
@@ -622,7 +624,7 @@ class Player extends ShiGameObject {
         {
             this.ctx.beginPath();
             this.ctx.moveTo(fireball_x * scale, fireball_y * scale);
-            this.ctx.arc(fireball_x * scale, fireball_y * scale, fireball_r * scale, 0 - Math.PI / 2, Math.PI * 2 * (1 - this.fireball_coldtime / 3) - Math.PI / 2, true);
+            this.ctx.arc(fireball_x * scale, fireball_y * scale, fireball_r * scale, 0 - Math.PI / 2, Math.PI * 2 * (1 - this.fireball_coldtime / 2) - Math.PI / 2, true);
             this.ctx.lineTo(fireball_x * scale, fireball_y * scale);
             this.ctx.fillStyle = "rgba(0, 0, 255, 0.5)";
             this.ctx.fill();

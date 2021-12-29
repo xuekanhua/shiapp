@@ -26,9 +26,11 @@ def register(request):
         return JsonResponse({
             'result' : "用户名已存在"
         })
+    # print("yes")
     user = User(username=username)
     user.set_password(password)
     user.save()
+
     ph = ["https://i2.hdslb.com/bfs/face/96724d4de1d2338ac02b9ec9a6356f8883632144.jpg@240w_240h_1c_1s.webp",
     "https://i2.hdslb.com/bfs/face/d399d6f5cf7943a996ae96999ba3e6ae2a2988de.jpg@240w_240h_1c_1s.webp",
     "https://i1.hdslb.com/bfs/face/8895c87082beba1355ea4bc7f91f2786ef49e354.jpg@240w_240h_1c_1s.webp",
@@ -42,14 +44,15 @@ def register(request):
     "https://i0.hdslb.com/bfs/emote/3cbc05078eee45c0861ce37e63092e379ae93d57.png@100w_100h.webp",
     "https://cdn.acwing.com/media/article/image/2021/12/27/137551_b056a7b066-zz.jpg",
     "https://cdn.acwing.com/media/article/image/2021/12/27/137551_a737eeb066-bb.jpg",
-    "https://cdn.acwing.com/media/article/image/2021/12/27/137551_71f60b3866-moooo.jpg"
+    "https://cdn.acwing.com/media/article/image/2021/12/27/137551_71f60b3866-moooo.jpg",
         ]
     # Player.objects.create(user=user, photo="https://cdn.acwing.com/media/user/profile/photo/69128_lg_c8103deb2b.jpg")
-    if(photo and photo.index("https://") == 1):
-        
+
+    # print("yesssssssssssssssssssssssssssssssss")
+
+    if(photo and photo.find("https://") != -1):
         Player.objects.create(user=user, photo=photo)
     else:
-
         Player.objects.create(user=user, photo=random.choice(ph))
 
     

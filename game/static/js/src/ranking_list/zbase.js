@@ -29,7 +29,7 @@ class RankingList {
         outer.send_get(url, field, f_title);
     }
     send_get(url, field, title) {
-        console.log("获取数据库");
+        // console.log("获取数据库");
         let outer = this;
         $.ajax({
             url: url,

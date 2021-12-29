@@ -158,7 +158,7 @@ class ShiGamePlayground {
         if (this.score_board) {
             this.score_board.destory();
             this.score_board = null;
-            console.log('12344');
+            // console.log('12344');
         }
 
         this.$playground.empty();

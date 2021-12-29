@@ -353,6 +353,8 @@ class Settings {
                 }
                 else{
                     outer.$register_error_messages.html(resp.result);
+                    // console.log("555df");
+
                 }
 
             }
@@ -421,9 +423,18 @@ class Settings {
             type : "GET",
             success : function(resp)
             {
+                console.log(resp);
+
                 if(resp.result === "success")
                 {
                     outer.acapp_login(resp.appid, resp.redirect_uri, resp.scope, resp.state);
+                    outer.username = resp.username;
+                    outer.photo = resp.photo;
+                    outer.hide();
+                    outer.root.menu.show();
+                    outer.root.menu.$userinfo_username.html("用户名：" + resp.username);
+                    outer.root.menu.$userinfo_score.html("战绩：" + resp.score);
+                    outer.root.menu.$userinfo_img.html("<img  src="+ resp.photo +">");
                 }
             }
 
