@@ -29,6 +29,12 @@ class Player extends ShiGameObject {
         this.speed_old = this.speed;
 
         this.fireballs = [];
+        this.emoji = ["https://cdn.acwing.com/media/article/image/2021/12/29/137551_fa369f3e68-grinning-face-with-sweat_1f605.png",
+        "https://cdn.acwing.com/media/article/image/2021/12/29/137551_ff74eaef68-ogre_1f479.png",
+        "https://cdn.acwing.com/media/article/image/2021/12/29/137551_e71a60e468-clown-face_1f921.png",
+        "https://cdn.acwing.com/media/article/image/2021/12/29/137551_e234ca0a68-alien_1f47d.png",
+        "https://cdn.acwing.com/media/article/image/2021/12/29/137551_f8377d1868-goblin_1f47a.png",
+        ];
 
         if(this.character !== "robot"){
             this.img = new Image();
@@ -37,7 +43,9 @@ class Player extends ShiGameObject {
         else
         {
             this.img = new Image();
-            this.img.src = "https://cdn.acwing.com/media/article/image/2021/12/29/137551_88610d5968-diren.png"
+            this.img.src = this.photo;
+            // this.img.src = "https://cdn.acwing.com/media/article/image/2021/12/29/137551_fa369f3e68-grinning-face-with-sweat_1f605.png"
+
         }
         // console.log(this.user_mode);
 
@@ -159,7 +167,7 @@ class Player extends ShiGameObject {
                         return false;
                     }
                     let fireball = outer.shoot_fireball(tx, ty);
-                    outer.fireball_coldtime = 0;
+                    outer.fireball_coldtime = 2;
                     
                     // outer.shoot_fireball(ctx_x / outer.playground.scale, ctx_y / outer.playground.scale) / outer.playground.scale;
                     if(outer.playground.mode === "multi mode")
@@ -583,6 +591,7 @@ class Player extends ShiGameObject {
         this.ctx.save();
         this.ctx.beginPath();
         this.ctx.arc(ctx_x * scale, ctx_y * scale, this.radius * scale, 0, Math.PI * 2, false);
+
 
         // this.ctx.arc(this.x * scale, this.y * scale, this.radius * scale, 0, Math.PI * 2, false);
         this.ctx.stroke();

@@ -99,6 +99,13 @@ class ShiGamePlayground {
         this.player_count = 0;
         this.score_board = new ScoreBoard(this);
 
+        this.emoji = ["https://cdn.acwing.com/media/article/image/2021/12/29/137551_fa369f3e68-grinning-face-with-sweat_1f605.png",
+        "https://cdn.acwing.com/media/article/image/2021/12/29/137551_ff74eaef68-ogre_1f479.png",
+        "https://cdn.acwing.com/media/article/image/2021/12/29/137551_e71a60e468-clown-face_1f921.png",
+        "https://cdn.acwing.com/media/article/image/2021/12/29/137551_e234ca0a68-alien_1f47d.png",
+        "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/htc/37/japanese-goblin_1f47a.png",
+        ];
+
         if(mode === "single mode")
         {
             this.players.push(new Player(this, this.width / 2 / this.scale, 0.5, 0.05, "white", 0.15, "me", this.root.settings.username, this.root.settings.photo, "single"));
@@ -108,9 +115,10 @@ class ShiGamePlayground {
             this.focus_player = this.players[0];
     
             for (let i = 0; i < 5; i++) {
-                this.players.push(new Player(this, this.width / 2 / this.scale, 0.5, 0.05, "black", 0.15, "robot", "", "", "single"));
+                this.players.push(new Player(this, this.width / 2 / this.scale, 0.5, 0.05, "black", 0.15, "robot", "", this.emoji[i], "single"));
                 
             }
+            
 
         }
         else if(mode === "multi mode")

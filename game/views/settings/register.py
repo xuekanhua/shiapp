@@ -45,6 +45,15 @@ def register(request):
     "https://cdn.acwing.com/media/article/image/2021/12/27/137551_b056a7b066-zz.jpg",
     "https://cdn.acwing.com/media/article/image/2021/12/27/137551_a737eeb066-bb.jpg",
     "https://cdn.acwing.com/media/article/image/2021/12/27/137551_71f60b3866-moooo.jpg",
+    "https://cdn.acwing.com/media/article/image/2021/12/29/137551_e8f1b13c68-face-blowing-a-kiss_1f618.png",
+    "https://cdn.acwing.com/media/article/image/2021/12/29/137551_efcd26ae68-face-savoring-food_1f60b.png",
+    "https://cdn.acwing.com/media/article/image/2021/12/29/137551_f11f64ab68-face-with-hand-over-mouth_1f92d.png",
+    "https://cdn.acwing.com/media/article/image/2021/12/29/137551_f7947da668-ghost_1f47b.png",
+    "https://cdn.acwing.com/media/article/image/2021/12/29/137551_fbbacbae68-hugging-face_1f917.png",
+    "https://cdn.acwing.com/media/article/image/2021/12/29/137551_00c09ea468-smiling-face-with-halo_1f607.png",
+    "https://cdn.acwing.com/media/article/image/2021/12/29/137551_0309b29a68-smiling-face-with-hearts_1f970.png",
+    "https://cdn.acwing.com/media/article/image/2021/12/29/137551_04ac2e6d68-smiling-face-with-smiling-eyes_1f60a.png",
+    "https://cdn.acwing.com/media/article/image/2021/12/29/137551_05df8d9e68-squinting-face-with-tongue_1f61d.png",
         ]
     # Player.objects.create(user=user, photo="https://cdn.acwing.com/media/user/profile/photo/69128_lg_c8103deb2b.jpg")
 

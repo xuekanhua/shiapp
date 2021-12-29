@@ -10,14 +10,16 @@ class FireBall extends ShiGameObject {
         this.move_length = move_length;
         this.vx = vx;
         this.vy = vy;
-        this.radius = radius;
-        this.color = color;
+        this.radius = radius * 1.5;
+        this.color = color; // color - > photo
         this.speed = speed;
         this.damage = damage;
         this.eps = 0.01;
         // console.log(this.player);
         // console.log(this.player.is_me);
-
+        
+        this.img = new Image();
+        this.img.src = "https://cdn.acwing.com/media/article/image/2021/12/29/137551_242d08d268-hott.png";
 
     }
     start() {
@@ -118,12 +120,23 @@ class FireBall extends ShiGameObject {
             return;
         }
 
-        this.ctx.beginPath();
-        // this.ctx.arc(this.x * scale, this.y * scale, this.radius * scale, 0, Math.PI * 2, false);
-        this.ctx.arc(ctx_x * scale, ctx_y * scale, this.radius * scale, 0, Math.PI * 2, false);
+        // this.ctx.beginPath();
+        // // this.ctx.arc(this.x * scale, this.y * scale, this.radius * scale, 0, Math.PI * 2, false);
+        // this.ctx.arc(ctx_x * scale, ctx_y * scale, this.radius * scale, 0, Math.PI * 2, false);
 
-        this.ctx.fillStyle = this.color;
-        this.ctx.fill();
+        // this.ctx.fillStyle = this.color;
+        // this.ctx.fill();
+        this.ctx.save();
+        this.ctx.beginPath();
+        // this.ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+        this.ctx.arc(ctx_x * scale, ctx_y * scale, this.radius * scale, 0, Math.PI * 2, false);
+        this.ctx.stroke();
+        this.ctx.clip();
+        this.ctx.drawImage(this.img, this.x - this.radius, this.y - this.radius, this.radius * 2, this.radius * 2);
+        this.ctx.drawImage(this.img, (ctx_x - this.radius) * scale, (ctx_y - this.radius) * scale, this.radius * 2 * scale, this.radius * 2 * scale);
+
+        this.ctx.restore();
+        
 
     }
 }
